@@ -20,6 +20,7 @@ load_dotenv(".env")
 print('ライブラリの読み込み完了')
 # def syuzaibetu_hallnavi_scraping(event,context):
 #     global furture_syuzai_list_df_1,cnx
+
 def removal_text(text):
     text = unicodedata.normalize("NFKC", text)
     text = text.translate(str.maketrans( '', '',string.punctuation  + '！'+ '　'+ ' '+'・'+'～' + '‐'))
@@ -106,7 +107,6 @@ today = datetime.date.today()
 # browser.get(url)
 # browser.implicitly_wait(10)
 
-
 #insert_data_bulk(preprocessingf_furture_syuzai_list_df)
 #cnx.commit()
 #post_line_text('大阪取材予定追加おわり','e85117mYEFu8efTmrXdR0nSRUgQJRxxVN0CMazT1efV')
@@ -173,9 +173,7 @@ for i in range(14,50):
     # if i > 13:
     #     break
 
-
 browser.quit()
-
 pattern = '東京都|北海道|(京都|大阪)府|.{2,3}県'
 # 都道府県を抽出する
 furture_syuzai_list_df = furture_syuzai_list_df[furture_syuzai_list_df['都道府県'] != '']

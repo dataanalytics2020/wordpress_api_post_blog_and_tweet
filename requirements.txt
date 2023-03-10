@@ -1,3 +1,9 @@
 python-dotenv
 pandas
 mysql-connector-python
+selenium
+requests
+webdriver-manager
+python-dotenv
+mysql-connector-python
+jupyter
