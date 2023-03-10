@@ -27,7 +27,7 @@ def removal_text(text):
     return text
 
 def insert_data_bulk(df,cnx):
-    insert_sql = """INSERT INTO hallnavi_gcp (都道府県, 日付, 曜日, 店舗名, 取材名, 媒体名, ランク) values (%s,%s,%s,%s,%s,%s,%s)"""
+    insert_sql = """INSERT INTO mysql_database.syuzai_report_table (都道府県, 日付, 曜日, 店舗名, 取材名, 媒体名, ランク) values (%s,%s,%s,%s,%s,%s,%s)"""
     cur = cnx.cursor()
     cur.executemany(insert_sql, df.values.tolist())
     print("Insert bulk data")
@@ -57,15 +57,15 @@ def insert_data_bulk(df,cnx):
 
 
 options = Options()
-options.add_argument('--headless')
+#options.add_argument('--headless')
 options.add_argument("--no-sandbox")
-options.add_argument("--disable-dev-shm-usage")
-options.add_argument("--disable-gpu")
-options.add_argument("--disable-features=NetworkService")
-options.add_argument("--window-size=1920x1080")
-options.add_argument("--disable-features=VizDisplayCompositor")
-UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36'
-options.add_argument('--user-agent=' + UA)
+# options.add_argument("--disable-dev-shm-usage")
+# options.add_argument("--disable-gpu")
+# options.add_argument("--disable-features=NetworkService")
+# options.add_argument("--window-size=1920x1080")
+# options.add_argument("--disable-features=VizDisplayCompositor")
+# UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36'
+# options.add_argument('--user-agent=' + UA)
 
 browser = webdriver.Chrome(ChromeDriverManager().install(),options=options)#ChromeDriverManager().install() 
 browser.implicitly_wait(10)
@@ -112,7 +112,7 @@ today = datetime.date.today()
 #post_line_text('大阪取材予定追加おわり','e85117mYEFu8efTmrXdR0nSRUgQJRxxVN0CMazT1efV')
 furture_syuzai_list_df = pd.DataFrame(index=[], columns=['都道府県','日付','店舗名','取材名','媒体名','ランク'])
 elements = browser.find_elements(By.CLASS_NAME,"mgn_serch_list_bottom")
-for i in range(14,50):
+for i in range(14,62):
     browser.find_element(By.CLASS_NAME,"head_change_main").click()
     time.sleep(1)
     if 'プレミアム会員登録' == browser.find_element(By.CLASS_NAME,"menu_child").text:
@@ -145,6 +145,7 @@ for i in range(14,50):
         browser.implicitly_wait(10)
     else:
         pass
+    
     try:
         elements = browser.find_elements(By.CLASS_NAME,"mgn_serch_list_bottom")
         baitai_name = elements[i].text.split(' ')[0]
@@ -174,6 +175,8 @@ for i in range(14,50):
     #     break
 
 browser.quit()
+
+
 pattern = '東京都|北海道|(京都|大阪)府|.{2,3}県'
 # 都道府県を抽出する
 furture_syuzai_list_df = furture_syuzai_list_df[furture_syuzai_list_df['都道府県'] != '']
@@ -193,6 +196,7 @@ furture_syuzai_list_df_1.rename(columns={0: '日付', 1: '曜日'}, inplace=True
 furture_syuzai_list_df_1['曜日'] = furture_syuzai_list_df_1['曜日'].map(lambda x:x.replace(')',''))
 furture_syuzai_list_df_1['日付'] = pd.to_datetime(furture_syuzai_list_df_1['日付'])
 furture_syuzai_list_df_1 = furture_syuzai_list_df_1 [['都道府県','日付','曜日',	'店舗名','取材名','媒体名','ランク']]
+furture_syuzai_list_df_1
 
 #### Create dataframe from resultant table ####
 cnx = mysql.connector.connect(
@@ -206,7 +210,7 @@ cursor = cnx.cursor()
 sql = "SELECT * FROM syuzai_report_table"
 cursor.execute(sql)
 #cols = [col[0] for col in cursor.description]
-sql_syuzai_report_all_df = pd.DataFrame(cursor.fetchall(),columns = ['都道府県','日付','店舗名','取材名','媒体名','ランク'])
+sql_syuzai_report_all_df = pd.DataFrame(cursor.fetchall(),columns = ['都道府県','日付','曜日','店舗名','取材名','媒体名','ランク'])
 #df
 # cursor = cnx.cursor()
 # # #### Connetion Established ####
@@ -216,9 +220,11 @@ sql_syuzai_report_all_df = pd.DataFrame(cursor.fetchall(),columns = ['都道府�
 # #### Create dataframe from resultant table ####
 
 sql_syuzai_report_all_df
+
 concat_df = pd.concat([sql_syuzai_report_all_df,furture_syuzai_list_df_1])
 concat_df['日付'] = pd.to_datetime(concat_df['日付'])
 concat_df = concat_df[~concat_df.duplicated(keep=False)]
+
 insert_data_bulk(concat_df,cnx)
 cnx.commit()
 
