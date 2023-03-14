@@ -1,25 +1,12 @@
-id,都道府県,日付,曜日,店舗名,取材名,媒体名,ランク
-0,石川県,2023-03-14,火,クァトロブーム金沢,chiiips取材,ChiiiPS(チップス),・
-1,石川県,2023-03-14,火,DSG WORLD 御経塚店,chiiips取材,ChiiiPS(チップス),・
-2,石川県,2023-03-14,火,DSGアリーナ野々市店,chiiips取材,ChiiiPS(チップス),・
-3,石川県,2023-03-14,火,DSG MEGA WORLD,chiiips取材,ChiiiPS(チップス),・
-4,石川県,2023-03-15,水,DSG MEGA CITY,chiiips取材,ChiiiPS(チップス),・
-5,石川県,2023-03-15,水,DSGアリーナ 七尾店,chiiips取材,ChiiiPS(チップス),・
-6,石川県,2023-03-15,水,ホームラン金沢店,chiiips取材,ChiiiPS(チップス),・
-7,石川県,2023-03-15,水,ホームランGOGO野々市店,chiiips取材,ChiiiPS(チップス),・
-8,石川県,2023-03-16,木,DSG WORLD 御経塚店,chiiips取材,ChiiiPS(チップス),・
-9,石川県,2023-03-16,木,DSG MEGA WORLD,chiiips取材,ChiiiPS(チップス),・
-10,石川県,2023-03-16,木,APOLLO長田店,chiiips取材,ChiiiPS(チップス),・
-11,富山県,2023-03-17,金,DSGアリーナ 高岡店,chiiips取材,ChiiiPS(チップス),・
-12,石川県,2023-03-17,金,APOLLO長田店,chiiips取材,ChiiiPS(チップス),・
-13,石川県,2023-03-18,土,DSG小松大将軍,chiiips取材,ChiiiPS(チップス),・
-14,石川県,2023-03-18,土,DSGアリーナ 七尾店,chiiips取材,ChiiiPS(チップス),・
-15,石川県,2023-03-19,日,オークラ 諸江店,chiiips取材,ChiiiPS(チップス),・
-16,石川県,2023-03-19,日,DSG小松大将軍,chiiips取材,ChiiiPS(チップス),・
-17,石川県,2023-03-19,日,ホームラン金沢店,chiiips取材,ChiiiPS(チップス),・
-18,石川県,2023-03-19,日,ホームランGOGO野々市店,chiiips取材,ChiiiPS(チップス),・
-19,石川県,2023-03-20,月,DSGアリーナ野々市店,chiiips取材,ChiiiPS(チップス),・
-20,石川県,2023-03-20,月,APOLLO長田店,chiiips取材,ChiiiPS(チップス),・
-21,石川県,2023-03-21,火,DSG WORLD 御経塚店,chiiips取材,ChiiiPS(チップス),・
-22,石川県,2023-03-21,火,DSGアリーナ野々市店,chiiips取材,ChiiiPS(チップス),・
-23,石川県,2023-03-21,火,オークラ 国分店,chiiips取材,ChiiiPS(チップス),・
+都道府県,イベント日,曜日,店舗名,取材名,媒体名,取材ランク
+石川県,2023-03-14,火,クァトロブーム金沢,chiiips取材,ChiiiPS(チップス),・
+石川県,2023-03-14,火,DSG WORLD 御経塚店,chiiips取材,ChiiiPS(チップス),・
+石川県,2023-03-14,火,DSGアリーナ野々市店,chiiips取材,ChiiiPS(チップス),・
+石川県,2023-03-14,火,DSG MEGA WORLD,chiiips取材,ChiiiPS(チップス),・
+石川県,2023-03-15,水,DSG MEGA CITY,chiiips取材,ChiiiPS(チップス),・
+石川県,2023-03-15,水,DSGアリーナ 七尾店,chiiips取材,ChiiiPS(チップス),・
+石川県,2023-03-15,水,ホームラン金沢店,chiiips取材,ChiiiPS(チップス),・
+石川県,2023-03-15,水,ホームランGOGO野々市店,chiiips取材,ChiiiPS(チップス),・
+石川県,2023-03-16,木,DSG WORLD 御経塚店,chiiips取材,ChiiiPS(チップス),・
+石川県,2023-03-16,木,DSG MEGA WORLD,chiiips取材,ChiiiPS(チップス),・
+石川県,2023-03-16,木,APOLLO長田店,chiiips取材,ChiiiPS(チップス),・
