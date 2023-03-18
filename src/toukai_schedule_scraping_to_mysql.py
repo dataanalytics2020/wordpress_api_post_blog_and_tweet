@@ -119,7 +119,7 @@ while True:
         #     break
         while True:
             for syuzai_tenpo_data in browser.find_elements(By.CLASS_NAME,"osbox"):
-                tenpo_name = syuzai_tenpo_data.find_element(By.CLASS_NAME,"oslh2").text
+                tenpo_name = syuzai_tenpo_data.find_element(By.CLASS_NAME,"oslh2").text.replace('\n', '').replace(' ', '').replace('　', '')
                 #print(tenpo_name.text)
                 syuzai_date = syuzai_tenpo_data.find_element(By.CLASS_NAME,"oslmd").text
                 rank_and_syuzai_name = syuzai_tenpo_data.find_element(By.CLASS_NAME,"list_event_name").text
