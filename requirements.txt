@@ -7,3 +7,6 @@ webdriver-manager
 python-dotenv
 mysql-connector-python
 jupyter
+branca>=0.3.0
+jinja2>=2.9
+folium
