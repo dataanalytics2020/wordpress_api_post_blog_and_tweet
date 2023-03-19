@@ -12,11 +12,11 @@ from webdriver_manager.chrome import ChromeDriverManager
 import mysql
 import mysql.connector
 import os
-from dotenv import load_dotenv
+
 import datetime
 
 
-
+from dotenv import load_dotenv
 load_dotenv(".env")
 
 
