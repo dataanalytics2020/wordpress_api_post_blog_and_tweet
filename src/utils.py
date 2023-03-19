@@ -34,20 +34,21 @@ load_dotenv(".env")
 print('読み込み完了')
 
 class UtilsTwitterClass():
-    #ブラウザ処理
-    #日付関連処理
 
     def __init__(self):
+        #日付関連処理
         today = datetime.date.today()
         tomorrow :datetime = datetime.date.today() + datetime.timedelta(days=1)
         yesterday :datetime = datetime.date.today() - datetime.timedelta(days=1)
         week_list = [ '(日)','(月)', '(火)', '(水)', '(木)', '(金)', '(土)','(日)']
         tomorrow = datetime.date.today() + datetime.timedelta(days=1)
-        tomorrow_date_string:str = tomorrow.strftime('%m').lstrip('0') + '/' + tomorrow.strftime('%d').lstrip('0') + week_list[tomorrow.isoweekday()]
+        tomorrow_date_string_jp:str = tomorrow.strftime('%m').lstrip('0') + '/' + tomorrow.strftime('%d').lstrip('0') + week_list[tomorrow.isoweekday()]
+        tomorrow_date_string_sql:str = tomorrow.strftime('%Y-%m-%d')
         yesterday_date_string:str =  yesterday.strftime('%m').lstrip('0') + '/' +  yesterday.strftime('%d').lstrip('0') + week_list[ yesterday.isoweekday()]
 
         self.tomorrow_8numbers_string:str = tomorrow.strftime('%Y%m%d')
-        self.tomorrow_date_stinrg:str = tomorrow_date_string
+        self.tomorrow_date_stinrg_jp:str = tomorrow_date_string_jp
+        self.tomorrow_date_string_sql = tomorrow_date_string_sql
         self.yesterday = yesterday
         self.tomorrow = tomorrow
         self.yesterday_date_string = yesterday_date_string
@@ -56,7 +57,7 @@ class UtilsTwitterClass():
         self.tweet_text = ''
         self.image_path_list = []
         self.main_tweet_text = ''
-        #ディレクトリ
+        #ディレクトリ関係
         self.project_dir_path = os.path.join(os.path.expanduser(r'~'),"Desktop","syuzai_map_django_site")
         self.image_dir_path = os.path.join(self.project_dir_path,"image")
         self.tweet_footer_text = '\n\n#XXXX '+ yesterday.strftime('%Y%m%d') + '\n\n'
@@ -319,7 +320,7 @@ class UtilsTwitterClass():
         global zendai_ichiran_df
         
         conn = pymysql.connect(host='XXXX',
-                                    user='XXXX,
+                                    user='XXXX',
                                     password='XXXXX',
                                     db='XXXXX',
                                     port=0000)
@@ -356,4 +357,36 @@ class UtilsTwitterClass():
         return zendai_ichiran_df
 
 
+    def get_concat_h_multi_blank(im_list):
+        _im = im_list.pop(0)
+        for im in im_list:
+            _im = get_concat_h_blank(_im, im)
+        return _im
 
+    def get_concat_v(im1, im2):
+        dst = Image.new('RGB', (im1.width, im1.height + im2.height))
+        dst.paste(im1, (0, 0))
+        dst.paste(im2, (0, im1.height))
+        return dst
+
+
+
+    def post_line(message):
+        url = "https://notify-api.line.me/api/notify"
+        token = os.environ['LINE_TOKEN']
+        headers = {"Authorization" : "Bearer "+ token}
+        payload = {"message" :  message}
+        #imagesフォルダの中のgazo.jpg
+        #print('image_path',image_path)
+        #files = {"imageFile":open(image_path,'rb')}
+        post = requests.post(url ,headers = headers ,params=payload) 
+
+
+    def convert_string(x):
+        x = x.replace('来店+取材B', '+スロパチ取材').replace('応援地区(ディレクター有)', '').replace('応援地区(ディレクター無)', '').replace('取材C', 'スロパチ潜入取材').replace('+結-MUSUBI-取材', '+スロパチ取材"結"').replace('+取材B', '+スロパチ取材').replace('潜入取材メガテン', 'メガテン').replace('襲来', '').replace('(30％以上)', '').replace('WEB広告', 'スロパチ広告').replace('+トレジャー取材', '+トレジャー').replace('あつまる+スロパチ取材', 'あつまる').replace('潜入光', '光').replace('潜入取材光', '光').replace('取材光', '光').replace('かたまる+スロパチ取材"結"', 'かたまる').replace('光(25％以上30％未満)', '光').replace('スロパチ潜入取材', '潜入取材').replace('あつまるのみ', 'あつまる').replace('応援地区', '').replace('ホールサーチマン金枠', '金枠').replace('ホールサーチマン赤枠', '赤枠').replace('かたまる×スロパチ取材結', 'かたまる').replace('本店館', '本館').replace('ホールサーチマンレインボー枠', 'レインボー枠').replace(' ', '').replace('　', '')
+        return x
+
+
+    def tenpo_convert_string(x):
+        x = x.replace('相模原ピーくんステージ', 'ピーくんステージ').replace('アミューズメントコミュニティ ', '').replace('店', '').replace('新!', '').replace('本', '本店').replace('新！', '')
+        return x
