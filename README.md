@@ -32,6 +32,7 @@ $ git add .
 #### コミットする。このとき#番号を忘れずに！！
 $ git commit -m “back-btn#27”
 
+#### github側でプルリクを承認する作業を忘れずに。
 #### プッシュする。先ほどのブランチ名に
 $ git push origin back-btn#27
 
