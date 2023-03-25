@@ -64,24 +64,16 @@ class UtilsTwitterClass():
         #os.path.join(self.image_dir_path," ") これ/imageの基本パス
         self.created_image_dir_path = os.path.join(self.image_dir_path,"image")
         self.servise_account_json_path = os.path.join(self.project_dir_path,"config", "twitteranalytics-jsonsercretkey.json")
-
-    def syuzai_df(self):
-        SCOPE = ['https://spreadsheets.google.com/feeds','https://www.googleapis.com/auth/drive']
-        credentials = ServiceAccountCredentials.from_json_keyfile_name(self.servise_account_json_path, SCOPE)
-        gs = gspread.authorize(credentials)
-        SPREADSHEET_KEY = os.getenv('SYUZAI_SPREADSHEET_KEY')
-        worksheet = gs.open_by_key(SPREADSHEET_KEY).worksheet('master')
-        df = pd.DataFrame(worksheet.get_all_values())
-        df.columns = list(df.loc[0, :])
-        df.drop(0, inplace=True)
-        df.reset_index(inplace=True)
-        df.drop('index', axis=1, inplace=True)
-        today = datetime.date.today()
-        tomorrow = today + datetime.timedelta(days=1)
-        df['日付'] = pd.to_datetime(df['日付'])
-        df = df[df['日付'] <= pd.to_datetime(tomorrow)]
-        df['日付'] = df['日付'].dt.strftime('%Y/%m/%d')
-        self.tomorrow_df = df
+        
+    def add_target_date (self, taget_day_number:int):
+        week_list = [ '(日)','(月)', '(火)', '(水)', '(木)', '(金)', '(土)','(日)']
+        target_date:datetime = datetime.date.today() + datetime.timedelta(days=taget_day_number)
+        #datetime(2023,3,3)
+        self.target_date:datetime = datetime.date.today() + datetime.timedelta(days=taget_day_number)
+        #3月3日(火)
+        self.target_date_string_jp:str = target_date.strftime('%m').lstrip('0') + '月' + target_date.strftime('%d').lstrip('0') + '日' + '(' +week_list[target_date.isoweekday()] + ')'
+        #2023-03-03
+        self.target_date_string_sql:str = target_date.strftime('%Y-%m-%d')
 
 
     def twitter_login(self):
@@ -229,82 +221,6 @@ class UtilsTwitterClass():
             tweet_button.click()
             time.sleep(3) 
 
-
-    def create_tweet_text(self,query_tomorrow_df):
-        input_twitter_text = ''
-        query_tomorrow_df['媒体'] = query_tomorrow_df['媒体'].map({'slopachi':'スロパチ','ryuko':'りゅーこ','hissyouhon':'必勝本','atsuhime':'アツ姫','sloslo':'スロスロ','akasaka':'演者'})
-        print(query_tomorrow_df)
-        for row in query_tomorrow_df.itertuples():
-            #print('文字数',len(input_twitter_text))
-            #print(row[3])
-            if row[3] == '':
-                continue
-
-            else:
-                for x in range(2,11):
-                    #print(row[2])
-
-                    if x == 2:
-                        input_twitter_text += '\n\n◆' + row[x]
-
-                    elif row[x] == '':
-                        break
-
-                    else:
-                        input_twitter_text += '\n' + row[x]
-
-        text_1 = f'{instance.date_stinrg}※毎日21時頃ツイート\n明日の都内取材予定'
-        text_2 = ''
-        text_3 = ''
-
-        input_twitter_text_list = input_twitter_text.split('\n')[1:]
-
-        for text in input_twitter_text_list:
-
-            if 100 < len(text_1) <= 110:
-                text_1 += '\n' + text +'\nリプに続く'
-                continue
-
-            if len(text_1) < 110:
-                text_1 += '\n' + text
-
-            elif 110 < len(text_1) < 220:
-                text_2 += '\n' + text
-
-            else :
-                text_2 += '\n' + text
-
-        tweet_footer_text = '\n\n#赤坂DB' + date_8figures_string + '\n\n'
-
-        self.tweet_footer_text = tweet_footer_text
-        text_1 += '\n\n#赤坂DB' + date_8figures_string + '\n\n'
-
-        print('===============tweet_text ツイート用文章=============\n',text_1,'\n===============ツイート用文章=============\n')
-        print('===============reply_text_1 リプ用文章1=============\n',text_2,'\n===============リプ用文章1=============')
-        print('===============reply_text_2 リプ用文章2=============\n',text_3,'\n===============リプ用文章2=============')
-        self.tweet_text = text_1
-        self.reply_text_1 =  text_2 
-        self.reply_text_2 =  text_3
-
-    def post_error_line(self,message,image_path):
-        url = "https://notify-api.line.me/api/notify"
-        token = "72wjnow36IUmMDI82RIJFtEQ06eJcGNzAwPz1cNzoAE"
-        headers = {"Authorization" : "Bearer "+ token}
-        payload = {"message" :  message}
-        #imagesフォルダの中のgazo.jpg
-        print('image_path',image_path)
-        files = {"imageFile":open(image_path,'rb')}
-        post = requests.post(url ,headers = headers ,params=payload,files=files) 
-    
-    def post_slack(self,text):
-        requests.post('https://hooks.slack.com/services/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', data = json.dumps({
-        'text': f'https://twitter.com/{self.id}\n\n{text}', # 投稿するテキスト
-        'username': u'赤坂_通知bot', # 投稿のユーザー名
-        'icon_emoji': u':ureshi_yoshi:', # 投稿のプロフィール画像に入れる絵文字
-        'link_names': 1, # メンションを有効にする
-        })) 
-
-
     def change_plus_convert(x):
         x = int(x)
         if x >= 0 :
@@ -313,12 +229,11 @@ class UtilsTwitterClass():
             x = '+' + str(x).replace('-','')
         #print(x)
         return x
-       
+
 
     def generate_database_query_df(self,tenpo_name,baitai_name,date):
         import pymysql
         global zendai_ichiran_df
-        
         conn = pymysql.connect(host='XXXX',
                                     user='XXXX',
                                     password='XXXXX',
@@ -355,20 +270,6 @@ class UtilsTwitterClass():
         self.zendai_ichiran_df = zendai_ichiran_df
 
         return zendai_ichiran_df
-
-
-    def get_concat_h_multi_blank(im_list):
-        _im = im_list.pop(0)
-        for im in im_list:
-            _im = get_concat_h_blank(_im, im)
-        return _im
-
-    def get_concat_v(im1, im2):
-        dst = Image.new('RGB', (im1.width, im1.height + im2.height))
-        dst.paste(im1, (0, 0))
-        dst.paste(im2, (0, im1.height))
-        return dst
-
 
 
     def post_line(message):
