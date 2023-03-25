@@ -71,7 +71,7 @@ class UtilsTwitterClass():
         #datetime(2023,3,3)
         self.target_date:datetime = datetime.date.today() + datetime.timedelta(days=taget_day_number)
         #3月3日(火)
-        self.target_date_string_jp:str = target_date.strftime('%m').lstrip('0') + '月' + target_date.strftime('%d').lstrip('0') + '日' + '(' +week_list[target_date.isoweekday()] + ')'
+        self.target_date_string_jp:str = target_date.strftime('%m').lstrip('0') + '月' + target_date.strftime('%d').lstrip('0') + '日'  +week_list[target_date.isoweekday()]
         #2023-03-03
         self.target_date_string_sql:str = target_date.strftime('%Y-%m-%d')
 
