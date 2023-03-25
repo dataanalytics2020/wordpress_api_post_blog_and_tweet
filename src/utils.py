@@ -64,7 +64,7 @@ class UtilsTwitterClass():
         #os.path.join(self.image_dir_path," ") これ/imageの基本パス
         self.created_image_dir_path = os.path.join(self.image_dir_path,"image")
         self.servise_account_json_path = os.path.join(self.project_dir_path,"config", "twitteranalytics-jsonsercretkey.json")
-        
+
     def add_target_date (self, taget_day_number:int):
         week_list = [ '(日)','(月)', '(火)', '(水)', '(木)', '(金)', '(土)','(日)']
         target_date:datetime = datetime.date.today() + datetime.timedelta(days=taget_day_number)
