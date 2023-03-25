@@ -75,7 +75,6 @@ class UtilsTwitterClass():
         #2023-03-03
         self.target_date_string_sql:str = target_date.strftime('%Y-%m-%d')
 
-
     def twitter_login(self):
         options = Options()
         # options.add_argument("--headless")
