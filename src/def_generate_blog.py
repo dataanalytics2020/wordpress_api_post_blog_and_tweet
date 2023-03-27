@@ -38,7 +38,7 @@ import os
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from wordpress_xmlrpc import Client, WordPressPost, methods
-from src.utils import *
+from utils import *
 from urllib.parse import urljoin
 import mysql
 import mysql.connector
@@ -54,7 +54,6 @@ class Blog():
         WORDPRESS_ID = os.environ['WORDPRESS_ID']
         WORDPRESS_PW = os.environ['WORDPRESS_PW']
         WORDPRESS_URL = os.environ['WORDPRESS_URL']
-        
         self.wp = Client(WORDPRESS_URL, WORDPRESS_ID, WORDPRESS_PW)
 
     def add_target_date (self, target_day_number:int):
@@ -255,8 +254,8 @@ class PledgeScraping():
     def login_scraping_site(self,area_name):
         global browser
         options = Options()
-        options.add_argument('--headless')
-        options.add_argument("--no-sandbox")
+        #options.add_argument('--headless')
+        #options.add_argument("--no-sandbox")
         browser = webdriver.Chrome(ChromeDriverManager().install(),options=options)#ChromeDriverManager().install()
         browser.implicitly_wait(10)
         url_login = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/login_form_mail"
@@ -311,7 +310,7 @@ class PledgeScraping():
         self.prefecture_name = prefecture_name
         furture_syuzai_list_df = pd.DataFrame(index=[], columns=['都道府県','イベント日','店舗名','取材名','取材ランク'])
         prefecture_number:int = int(self.prefecture_name_and_number_dict[prefecture_name])
-        url = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/osusume_list?ken={self.prefecture_name}&ymd={self.target_date_string_sql}"
+        url = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/osusume_list?ken={prefecture_number}&ymd={self.target_date_string_sql}"
         browser.get(url)
         browser.implicitly_wait(10)
         kiji_element_box = browser.find_element(By.CLASS_NAME,"osusume_list_container")
@@ -446,11 +445,13 @@ for post in post_list:
 
 scraping = PledgeScraping()
 
-for target_day_number in range(1,4):
+for target_day_number in range(2,5):
     scraping.add_target_date(target_day_number)
     browser = scraping.login_scraping_site('chubu')
     prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
     for prefecture_name in prefecture_name_and_number_dict:
+        if 'プレミアム会員登録' == browser.find_element(By.CLASS_NAME,"menu_child").text:
+            browser = scraping.login_scraping_site('chubu')
         blog = Blog()
         print(prefecture_name,target_day_number)
         blog.add_target_date (target_day_number)
@@ -471,18 +472,18 @@ for target_day_number in range(1,4):
                 print(ret)
                 #break
 
-            main_text:str = blog.create_main_text()
-            blog.wp_update_post(update_content_id, main_text)
+            main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
+            #blog.wp_update_post(update_content_id, main_text)
             blog.post_line(f'既存記事を更新しました。\n{prefecture_name}_{blog.target_date_string_jp}')
         else:
             print('新しい記事を作成')
             print(title)
             blog.generate_thumbnail()
             main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
-            blog.post_blog(main_text)
+            #blog.post_blog(main_text)
             blog.post_line(f'新しい記事を作成しました。\n{prefecture_name}_{blog.target_date_string_jp}')
         #break
-    break
+    #break
 
 
 try:
