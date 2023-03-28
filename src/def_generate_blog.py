@@ -221,7 +221,7 @@ class Blog():
         image_url_head_text:str = f'http://slotana777.com/wp-content/uploads/{datetime.datetime.now().strftime("%Y")}/{datetime.datetime.now().strftime("%m")}/'
         for input_image_path in save_main_image_path_list:
             output_path = input_image_path.replace('image\\temp_image\\','')
-            output_path = output_path.split('.')[0] + f'_updatetime_' + datetime.datetime.now().strftime('%m-%d') +'.' +output_path.split('.')[1]
+            output_path = output_path.split('.')[0] + f'_updatetime_' + datetime.datetime.now().strftime('%m-%d-%H') +'.' +output_path.split('.')[1]
             print(output_path)
             self.upload_image(input_image_path, output_path)
             main_text  += f'''\n<a href="{image_url_head_text}{output_path}">\n<img src="{image_url_head_text}{output_path}" alt="{self.prefecture_name}_{self.target_date_string_sql}_パチンコ・パチスロ_イベント" class="alignnone size-full " /></a>'''
@@ -436,60 +436,63 @@ class PledgeScraping():
         self.save_main_image_path_list = save_main_image_path_list
         return self.save_main_image_path_list
 
-
-blog = Blog()
-post_list = blog.get_post_list()
-post_title_contentid_dict:dict[str:int] = {}
-for post in post_list:
-    post_title_contentid_dict[post.title] = int(post.id)
-
-scraping = PledgeScraping()
-
-for target_day_number in range(2,5):
-    scraping.add_target_date(target_day_number)
-    browser = scraping.login_scraping_site('chubu')
-    prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
-    for prefecture_name in prefecture_name_and_number_dict:
-        if 'プレミアム会員登録' == browser.find_element(By.CLASS_NAME,"menu_child").text:
-            browser = scraping.login_scraping_site('chubu')
-        blog = Blog()
-        print(prefecture_name,target_day_number)
-        blog.add_target_date (target_day_number)
-        blog.prefecture_name = prefecture_name
-        print(prefecture_name)
-        scraping_target_date_pledge_df = scraping.read_target_date_pledge_df(prefecture_name)
-        read_convert_parlar_name_df = scraping.read_convert_parlar_name_df()
-        merged_syuzai_pledge_df = scraping.generate_merged_syuzai_pledge_df()
-        save_main_image_path_list = scraping.create_pledge_main_images()
-        title = f"【{blog.prefecture_name}】{blog.target_date_string_jp } パチンコスロットイベント取材まとめ"
-        if title in post_title_contentid_dict:
-            update_content_id:int = int(post_title_contentid_dict[title])
-            print('既存の記事を更新',update_content_id)
-            files:list[Client] = blog.wp.call(methods.media.GetMediaLibrary({"parent_id": update_content_id}))
-            for file in files:
-                print('画像削除',file.id, file.title)
-                ret = blog.wp.call(methods.posts.DeletePost(file.id))
-                print(ret)
-                #break
-
-            main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
-            #blog.wp_update_post(update_content_id, main_text)
-            blog.post_line(f'既存記事を更新しました。\n{prefecture_name}_{blog.target_date_string_jp}')
-        else:
-            print('新しい記事を作成')
-            print(title)
-            blog.generate_thumbnail()
-            main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
-            #blog.post_blog(main_text)
-            blog.post_line(f'新しい記事を作成しました。\n{prefecture_name}_{blog.target_date_string_jp}')
-        #break
-    #break
-
-
 try:
-    target_dir = r'image\temp_image'
-    shutil.rmtree(target_dir)
-except:
-    pass
-finally:
-    os.mkdir(target_dir)
+    blog = Blog()
+    post_list = blog.get_post_list()
+    post_title_contentid_dict:dict[str:int] = {}
+    for post in post_list:
+        post_title_contentid_dict[post.title] = int(post.id)
+
+    scraping = PledgeScraping()
+
+    for target_day_number in range(1,2):
+        scraping.add_target_date(target_day_number)
+        browser = scraping.login_scraping_site('chubu')
+        prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
+        for prefecture_name in prefecture_name_and_number_dict:
+            if 'プレミアム会員登録' == browser.find_element(By.CLASS_NAME,"menu_child").text:
+                browser = scraping.login_scraping_site('chubu')
+            blog = Blog()
+            print(prefecture_name,target_day_number)
+            blog.add_target_date (target_day_number)
+            blog.prefecture_name = prefecture_name
+            print(prefecture_name)
+            scraping_target_date_pledge_df = scraping.read_target_date_pledge_df(prefecture_name)
+            read_convert_parlar_name_df = scraping.read_convert_parlar_name_df()
+            merged_syuzai_pledge_df = scraping.generate_merged_syuzai_pledge_df()
+            save_main_image_path_list = scraping.create_pledge_main_images()
+            title = f"【{blog.prefecture_name}】{blog.target_date_string_jp } パチンコスロットイベント取材まとめ"
+            if title in post_title_contentid_dict:
+                update_content_id:int = int(post_title_contentid_dict[title])
+                print('既存の記事を更新',update_content_id)
+                files:list[Client] = blog.wp.call(methods.media.GetMediaLibrary({"parent_id": update_content_id}))
+                for file in files:
+                    print('画像削除',file.id, file.title)
+                    ret = blog.wp.call(methods.posts.DeletePost(file.id))
+                    print(ret)
+                    #break
+
+                main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
+                blog.wp_update_post(update_content_id, main_text)
+                blog.post_line(f'既存記事を更新しました。\n{prefecture_name}_{blog.target_date_string_jp}')
+            else:
+                print('新しい記事を作成')
+                print(title)
+                blog.generate_thumbnail()
+                main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
+                blog.post_blog(main_text)
+                blog.post_line(f'新しい記事を作成しました。\n{prefecture_name}_{blog.target_date_string_jp}')
+            #break
+        #break
+
+    try:
+        target_dir = r'image\temp_image'
+        shutil.rmtree(target_dir)
+    except:
+        pass
+    finally:
+        os.mkdir(target_dir)
+        blog.post_line(f'全ての処理が終わりました。')
+
+except Exception as e :
+    blog.post_line(f'\n{e}')
