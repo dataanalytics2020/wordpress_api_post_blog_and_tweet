@@ -361,8 +361,10 @@ class PledgeScraping():
     def generate_merged_syuzai_pledge_df(self):
         merged_syuzai_pledge_df = pd.merge(self.furture_syuzai_list_df,self.convert_parlar_name_df,how='left',on='取材名')
         merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['取材名'].str.contains('ナビ子')]
+        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['媒体名'] == 'ホールナビ']
         merged_syuzai_pledge_df = merged_syuzai_pledge_df.fillna('未調査')
         merged_syuzai_pledge_df = merged_syuzai_pledge_df.replace({'': '未調査'})
+        merged_syuzai_pledge_df = merged_syuzai_pledge_df.reset_index(drop=True)
         self.merged_syuzai_pledge_df = merged_syuzai_pledge_df
         return self.merged_syuzai_pledge_df
     
@@ -419,7 +421,7 @@ class PledgeScraping():
 
             last_time_parlar_name = row['店舗名']
             #print(parlar_name_count)
-            if (parlar_name_count > 9 ) or self.merged_syuzai_pledge_df.index[-1] == i :
+            if (parlar_name_count > 9 ) or (self.merged_syuzai_pledge_df.index[-1] == i) :
                 #print('処理開始')
                 create_image_number  += 1
                 title = f'{self.prefecture_name} {self.target_date_string_jp} スロットイベントまとめ{create_image_number}\n'
@@ -445,7 +447,7 @@ try:
 
     scraping = PledgeScraping()
 
-    for target_day_number in range(1,2):
+    for target_day_number in range(0,6):
         scraping.add_target_date(target_day_number)
         browser = scraping.login_scraping_site('chubu')
         prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
