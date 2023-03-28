@@ -65,7 +65,7 @@ class Blog():
         self.target_date_string_jp:str = target_date.strftime('%m').lstrip('0') + '月' + target_date.strftime('%d').lstrip('0') + '日'  +week_list[target_date.isoweekday()]
         #2023-03-03
         self.target_date_string_sql:str = target_date.strftime('%Y-%m-%d')
-        print(f'インスタンに日付:{self.target_date_string_jp}など三つの変数が追加されました')
+        print(f'インスタンスに日付:{self.target_date_string_jp}など三つの変数が追加されました')
     
     def upload_image(self,in_image_file_name, out_image_file_name):
         if os.path.exists(in_image_file_name):
@@ -97,7 +97,7 @@ class Blog():
         post = requests.post(url ,headers = headers ,params=payload) 
 
 
-    def get_post_list(self) -> list[any]:
+    def get_post_list(self) -> list[WordPressPost]:
         '''投稿一覧を取得する関数
         一回で100記事まで取得できる'''
         post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 50, "offset":0}))
@@ -359,11 +359,13 @@ class PledgeScraping():
         return self.convert_parlar_name_df
     
     def generate_merged_syuzai_pledge_df(self):
-        merged_syuzai_pledge_df = pd.merge(self.furture_syuzai_list_df,self.convert_parlar_name_df,how='left',on='取材名')
-        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['取材名'].str.contains('ナビ子')]
-        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['媒体名'] == 'ホールナビ']
+        convert_parlar_name_df = self.convert_parlar_name_df
+        convert_parlar_name_df = convert_parlar_name_df.fillna('未調査').replace({'': '未調査'})
+        merged_syuzai_pledge_df = pd.merge(self.furture_syuzai_list_df,convert_parlar_name_df,how='left',on='取材名')
         merged_syuzai_pledge_df = merged_syuzai_pledge_df.fillna('未調査')
         merged_syuzai_pledge_df = merged_syuzai_pledge_df.replace({'': '未調査'})
+        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['取材名'].str.contains('ナビ子')]
+        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['媒体名'].str.contains('ホールナビ')]
         merged_syuzai_pledge_df = merged_syuzai_pledge_df.reset_index(drop=True)
         self.merged_syuzai_pledge_df = merged_syuzai_pledge_df
         return self.merged_syuzai_pledge_df
@@ -409,15 +411,12 @@ class PledgeScraping():
             if row['取材名'].startswith(tuple(['旧イベ'])):
                 schedule_text += '　☆' + row['取材名']  + '\n'
                 last_time_parlar_name = row['店舗名']
-                continue
             else:
                 schedule_text += '　☆' + row['取材名'] + ' 【' + row['媒体名'] + '】' + '\n'
-
-
-            if (str(row['公約内容']) == 'nan') or (row['公約内容'] == None) or (row['公約内容'] == ''):
-                schedule_text += '       ┗' + '未調査' + '\n'
-            else:
-                schedule_text += '       ┗' + row['公約内容'] + '\n'
+                if (str(row['公約内容']) == 'nan') or (row['公約内容'] == None) or (row['公約内容'] == ''):
+                    schedule_text += '       ┗' + '未調査' + '\n'
+                else:
+                    schedule_text += '       ┗' + row['公約内容'] + '\n'
 
             last_time_parlar_name = row['店舗名']
             #print(parlar_name_count)
@@ -447,7 +446,7 @@ try:
 
     scraping = PledgeScraping()
 
-    for target_day_number in range(0,6):
+    for target_day_number in range(0,1):
         scraping.add_target_date(target_day_number)
         browser = scraping.login_scraping_site('chubu')
         prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
