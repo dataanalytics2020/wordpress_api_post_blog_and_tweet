@@ -446,7 +446,7 @@ try:
 
     scraping = PledgeScraping()
 
-    for target_day_number in range(0,1):
+    for target_day_number in range(0,6):
         scraping.add_target_date(target_day_number)
         browser = scraping.login_scraping_site('chubu')
         prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
