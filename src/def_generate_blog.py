@@ -100,7 +100,7 @@ class Blog():
     def get_post_list(self) -> list[WordPressPost]:
         '''投稿一覧を取得する関数
         一回で100記事まで取得できる'''
-        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 50, "offset":0}))
+        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 150, "offset":0}))
         self.post_list = post_list
         return self.post_list
 
@@ -446,7 +446,7 @@ try:
 
     scraping = PledgeScraping()
 
-    for target_day_number in range(0,6):
+    for target_day_number in range(1,6):
         scraping.add_target_date(target_day_number)
         browser = scraping.login_scraping_site('chubu')
         prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
@@ -493,7 +493,17 @@ try:
         pass
     finally:
         os.mkdir(target_dir)
-        blog.post_line(f'全ての処理が終わりました。')
+        blog.post_line(f'全ての処理が正常に終わりました。')
 
 except Exception as e :
     blog.post_line(f'\n{e}')
+
+finally:
+    try:
+        target_dir = r'image\temp_image'
+        shutil.rmtree(target_dir)
+    except:
+        pass
+    finally:
+        os.mkdir(target_dir)
+        blog.post_line(f'全ての処理が終わりました。')
