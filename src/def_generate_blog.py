@@ -497,7 +497,7 @@ try:
 
 except Exception as e :
     blog.post_line(f'\n{e}')
-    
+
 finally:
     try:
         target_dir = r'image\temp_image'
