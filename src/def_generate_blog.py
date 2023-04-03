@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import requests
 import json
+import base64
 from wordpress_xmlrpc.methods import media
 from oauth2client.service_account import ServiceAccountCredentials
 import gspread
@@ -38,11 +39,17 @@ import os
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
 from wordpress_xmlrpc import Client, WordPressPost, methods
-from utils import *
 from urllib.parse import urljoin
 import mysql
 import mysql.connector
+import urllib.request
+
+
 print('ライブラリの読み込み完了')
+try:
+    from src.utils import *
+except:
+    from utils import *
 
 # .envファイルの内容を読み込見込む
 load_dotenv()
@@ -54,7 +61,20 @@ class Blog():
         WORDPRESS_ID = os.environ['WORDPRESS_ID']
         WORDPRESS_PW = os.environ['WORDPRESS_PW']
         WORDPRESS_URL = os.environ['WORDPRESS_URL']
+        self.error_pledge_name_list = []
         self.wp = Client(WORDPRESS_URL, WORDPRESS_ID, WORDPRESS_PW)
+        
+    def check_url(self,url,pledge_name):
+        flag = True
+        try:
+            f = urllib.request.urlopen(url)
+            #print('OK:', url)
+            f.close()
+        except urllib.request.HTTPError:
+            print('Not found:', pledge_name,url)
+            flag = False
+
+        return flag
 
     def add_target_date (self, target_day_number:int):
         week_list = [ '(日)','(月)', '(火)', '(水)', '(木)', '(金)', '(土)','(日)']
@@ -65,7 +85,7 @@ class Blog():
         self.target_date_string_jp:str = target_date.strftime('%m').lstrip('0') + '月' + target_date.strftime('%d').lstrip('0') + '日'  +week_list[target_date.isoweekday()]
         #2023-03-03
         self.target_date_string_sql:str = target_date.strftime('%Y-%m-%d')
-        print(f'インスタンスに日付:{self.target_date_string_jp}など三つの変数が追加されました')
+        print(f'インスタンに日付:{self.target_date_string_jp}など三つの変数が追加されました')
     
     def upload_image(self,in_image_file_name, out_image_file_name):
         if os.path.exists(in_image_file_name):
@@ -97,10 +117,10 @@ class Blog():
         post = requests.post(url ,headers = headers ,params=payload) 
 
 
-    def get_post_list(self) -> list[WordPressPost]:
+    def get_post_list(self) -> list[any]:
         '''投稿一覧を取得する関数
         一回で100記事まで取得できる'''
-        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 150, "offset":0}))
+        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 50, "offset":0}))
         self.post_list = post_list
         return self.post_list
 
@@ -116,15 +136,13 @@ class Blog():
         image.save(thumbnail_image_path)
         self.thumbnail_image_path = thumbnail_image_path
 
-    def create_post_content(self):
-        pass
 
     def post_blog(self,main_text):
         title = f"【{self.prefecture_name}】{self.target_date_string_jp} パチンコスロットイベント取材まとめ"
         # Blog Content (html)
         body = main_text
         # publish or draft
-        status =  "publish" #or# 'draft'
+        status = 'publish' # "publish"　or# 'draft'
 
         # Category keyword
         cat1 = '取材予定まとめ'
@@ -161,25 +179,27 @@ class Blog():
         # except Exception as e:
     #     post_line(f'{tomorrow}分ブログ投稿失敗\n{e}')
     
-    def wp_update_post(self,content_id:int, changed_content:str):
-
+    def wp_update_post(self,content_id:int,content_text:str) -> dict:
+        
         # URL, User, Password設定
         WP_URL: str = os.getenv('WP_URL')
         WP_USER: str = os.getenv('WP_USER')
         WP_API_PASSWORD: str = os.getenv('REST_API_PW')
         API_URL = f"{WP_URL}/wp-json/wp/v2/"
         url = f'{WP_URL}/wp-json/wp/v2/posts/{content_id}'
+        credentials = WP_USER + ':' + WP_API_PASSWORD
+        token = base64.b64encode(credentials.encode())
+        headers = {'Authorization': 'Basic ' + token.decode('utf-8')}
 
-
-        params = {'content':changed_content}
-
-        res = requests.post(
-            url,
-            params=params,
-            auth=( WP_USER, WP_API_PASSWORD),
-            )
-
-        return res
+        post = {f'content': content_text,
+                'status': 'publish'}
+        res = requests.post(f"{WP_URL}/wp-json/wp/v2/posts/{content_id}", headers=headers, json=post)
+        if res.ok:
+            print("投稿の更新 成功 code:{res.status_code}")
+            return json.loads(res.text)
+        else:
+            print(f"投稿の更新 失敗 code:{res.status_code} reason:{res.reason} msg:{res.text}")
+            return {}
 
     def wp_tag_add(self,tagname:str) -> int:
         
@@ -221,7 +241,7 @@ class Blog():
         image_url_head_text:str = f'http://slotana777.com/wp-content/uploads/{datetime.datetime.now().strftime("%Y")}/{datetime.datetime.now().strftime("%m")}/'
         for input_image_path in save_main_image_path_list:
             output_path = input_image_path.replace('image\\temp_image\\','')
-            output_path = output_path.split('.')[0] + f'_updatetime_' + datetime.datetime.now().strftime('%m-%d-%H') +'.' +output_path.split('.')[1]
+            output_path = output_path.split('.')[0] + f'_updatetime_' + datetime.datetime.now().strftime('%m-%d') +'.' +output_path.split('.')[1]
             print(output_path)
             self.upload_image(input_image_path, output_path)
             main_text  += f'''\n<a href="{image_url_head_text}{output_path}">\n<img src="{image_url_head_text}{output_path}" alt="{self.prefecture_name}_{self.target_date_string_sql}_パチンコ・パチスロ_イベント" class="alignnone size-full " /></a>'''
@@ -232,9 +252,63 @@ class Blog():
         print(html_table_df.to_html(index=False))
 
         main_text += f'<h2>{self.prefecture_name} {self.target_date_string_jp} パチンコ・スロット イベント 取材まとめ・オススメ店舗順一覧</h2>'
-        main_text += '\n' + html_table_df.to_html(index=False)
+        main_text += '\n[su_spoiler title="店舗別一覧を表示する※タップで全取材一覧が見れます" style="fancy" icon="chevron-circle" anchor="Hello"]\n' + html_table_df.to_html(index=False) + '[/su_spoiler]'
         self.main_text = main_text
         return self.main_text
+
+    def generate_by_pledge_text(self,merged_syuzai_pledge_df,scraping):
+        input_by_pledge_text = f'\n<h2>{self.prefecture_name} {self.target_date_string_jp} 媒体別取材まとめ</h2>\n'
+        pledge_name_list:list[str] = list(merged_syuzai_pledge_df['媒体名'].unique())
+        for pledge_name in ['フリー','その他','未調査']:
+            try:
+                pledge_name_list.remove(pledge_name)
+                pledge_name_list.append(pledge_name)
+            except:
+                pass
+        error_pledge_name_list = []
+        for pledge_name in pledge_name_list:
+            extract_pledge_name_df = merged_syuzai_pledge_df[merged_syuzai_pledge_df['媒体名'] == pledge_name]
+            encoced_plefge_name = urllib.parse.quote(pledge_name)
+            header_url:str = f'http://slotana777.com/wp-content/uploads/2023/04/{encoced_plefge_name}.jpg'
+            if self.check_url(header_url,pledge_name):
+                input_by_pledge_text += f'<img src="http://slotana777.com/wp-content/uploads/2023/04/{pledge_name}.jpg" alt="{pledge_name}" width="1000" height="400" class="size-full " />\n'
+            else:
+                h2_banner_text:str =f'''<div class="box-alert box-alert-info">
+        <i class="fas fa-exclamation-circle fa-4x"></i>
+        <div class="alert-message">
+            <div class="alert-title">{pledge_name}</div>
+            <p>{scraping.target_date_string_jp}  {scraping.prefecture_name}</p>
+        </div></div>'''
+                #print(h2_banner_text)
+                input_by_pledge_text += '\n' + h2_banner_text
+                self.error_pledge_name_list.append(pledge_name)
+            #display(extract_pledge_name_df )
+            #break
+            rank_replace_dict:dict[str] = {'S':'<h4 class="rankh4 rankno-1">','A':'<h4 class="rankh4 rankno-2">','B':'<h4 class="rankh4 rankno-3">','C':'<h4 class="rankh4 rankno-4">','・':'<h4 class="rankh4 rankno-4">'}
+            for rank in ['S','A','B','C','・']:
+                extract_syuzai_name_df  = extract_pledge_name_df[extract_pledge_name_df['取材ランク'] == rank]
+                #display(extract_syuzai_name_df)
+                for syuzai_name in extract_syuzai_name_df['取材名'].unique():
+                    input_by_pledge_text += '<div class="redbox"><h5><span class="oomozi"><strong>' + syuzai_name + '</strong></span></h5>\n'
+                    extract_parlar_name_df  = extract_pledge_name_df[extract_pledge_name_df['取材名'] == syuzai_name]
+                    pre_pledge_name = ''
+                    for i,row in extract_parlar_name_df.iterrows():
+                        if pre_pledge_name != row['取材名']:
+                            input_by_pledge_text += f'\n<span class="hatenamark2 on-color">公約:{row["公約内容"]}</span>'
+                            input_by_pledge_text += f'\n{rank_replace_dict[rank]} {row["店舗名"]}</strong></span></h4>'
+                        else:
+                            input_by_pledge_text += f'\n{rank_replace_dict[rank]} {row["店舗名"]}</strong></span></h4>'
+                        pre_pledge_name = row['取材名']
+                    input_by_pledge_text +='</div>'  
+            # if len(extract_pledge_name_df ) != 0:
+            #     # print('\n■',baitai,sep='')
+            #     winput_by_pledge_text += '<h3>' + string_date_only + ' ' + todoufuken_kanji + ' スロット ' + baitai + '</h3>' + f'\n<img src="http://slotana777.com/wp-content/uploads/2021/04/{error_baitai}.jpg" alt="{error_baitai} タイトル画像" width="1000" height="400" class="alignnone size-full " />\n'
+            # else:
+            #     pass
+            #break
+        print(input_by_pledge_text)
+        self.input_by_pledge_text = input_by_pledge_text
+        return self.input_by_pledge_text
 
 
 
@@ -254,8 +328,8 @@ class PledgeScraping():
     def login_scraping_site(self,area_name):
         global browser
         options = Options()
-        #options.add_argument('--headless')
-        #options.add_argument("--no-sandbox")
+        options.add_argument('--headless')
+        options.add_argument("--no-sandbox")
         browser = webdriver.Chrome(ChromeDriverManager().install(),options=options)#ChromeDriverManager().install()
         browser.implicitly_wait(10)
         url_login = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/login_form_mail"
@@ -310,7 +384,7 @@ class PledgeScraping():
         self.prefecture_name = prefecture_name
         furture_syuzai_list_df = pd.DataFrame(index=[], columns=['都道府県','イベント日','店舗名','取材名','取材ランク'])
         prefecture_number:int = int(self.prefecture_name_and_number_dict[prefecture_name])
-        url = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/osusume_list?ken={prefecture_number}&ymd={self.target_date_string_sql}"
+        url = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/osusume_list?ken={self.prefecture_name}&ymd={self.target_date_string_sql}"
         browser.get(url)
         browser.implicitly_wait(10)
         kiji_element_box = browser.find_element(By.CLASS_NAME,"osusume_list_container")
@@ -359,14 +433,10 @@ class PledgeScraping():
         return self.convert_parlar_name_df
     
     def generate_merged_syuzai_pledge_df(self):
-        convert_parlar_name_df = self.convert_parlar_name_df
-        convert_parlar_name_df = convert_parlar_name_df.fillna('未調査').replace({'': '未調査'})
-        merged_syuzai_pledge_df = pd.merge(self.furture_syuzai_list_df,convert_parlar_name_df,how='left',on='取材名')
+        merged_syuzai_pledge_df = pd.merge(self.furture_syuzai_list_df,self.convert_parlar_name_df,how='left',on='取材名')
+        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['取材名'].str.contains('ナビ子')]
         merged_syuzai_pledge_df = merged_syuzai_pledge_df.fillna('未調査')
         merged_syuzai_pledge_df = merged_syuzai_pledge_df.replace({'': '未調査'})
-        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['取材名'].str.contains('ナビ子')]
-        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['媒体名'].str.contains('ホールナビ')]
-        merged_syuzai_pledge_df = merged_syuzai_pledge_df.reset_index(drop=True)
         self.merged_syuzai_pledge_df = merged_syuzai_pledge_df
         return self.merged_syuzai_pledge_df
     
@@ -411,16 +481,19 @@ class PledgeScraping():
             if row['取材名'].startswith(tuple(['旧イベ'])):
                 schedule_text += '　☆' + row['取材名']  + '\n'
                 last_time_parlar_name = row['店舗名']
+                continue
             else:
                 schedule_text += '　☆' + row['取材名'] + ' 【' + row['媒体名'] + '】' + '\n'
-                if (str(row['公約内容']) == 'nan') or (row['公約内容'] == None) or (row['公約内容'] == ''):
-                    schedule_text += '       ┗' + '未調査' + '\n'
-                else:
-                    schedule_text += '       ┗' + row['公約内容'] + '\n'
+
+
+            if (str(row['公約内容']) == 'nan') or (row['公約内容'] == None) or (row['公約内容'] == ''):
+                schedule_text += '       ┗' + '未調査' + '\n'
+            else:
+                schedule_text += '       ┗' + row['公約内容'] + '\n'
 
             last_time_parlar_name = row['店舗名']
             #print(parlar_name_count)
-            if (parlar_name_count > 9 ) or (self.merged_syuzai_pledge_df.index[-1] == i) :
+            if (parlar_name_count > 9 ) or self.merged_syuzai_pledge_df.index[-1] == i :
                 #print('処理開始')
                 create_image_number  += 1
                 title = f'{self.prefecture_name} {self.target_date_string_jp} スロットイベントまとめ{create_image_number}\n'
@@ -446,13 +519,11 @@ try:
 
     scraping = PledgeScraping()
 
-    for target_day_number in range(1,6):
+    for target_day_number in range(0,6):
         scraping.add_target_date(target_day_number)
         browser = scraping.login_scraping_site('chubu')
         prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
         for prefecture_name in prefecture_name_and_number_dict:
-            if 'プレミアム会員登録' == browser.find_element(By.CLASS_NAME,"menu_child").text:
-                browser = scraping.login_scraping_site('chubu')
             blog = Blog()
             print(prefecture_name,target_day_number)
             blog.add_target_date (target_day_number)
@@ -465,7 +536,7 @@ try:
             title = f"【{blog.prefecture_name}】{blog.target_date_string_jp } パチンコスロットイベント取材まとめ"
             if title in post_title_contentid_dict:
                 update_content_id:int = int(post_title_contentid_dict[title])
-                print('既存の記事を更新',update_content_id)
+                print('既存の記事を更新します',update_content_id)
                 files:list[Client] = blog.wp.call(methods.media.GetMediaLibrary({"parent_id": update_content_id}))
                 for file in files:
                     print('画像削除',file.id, file.title)
@@ -474,27 +545,22 @@ try:
                     #break
 
                 main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
-                blog.wp_update_post(update_content_id, main_text)
+                generate_by_pledge_text = blog.generate_by_pledge_text(merged_syuzai_pledge_df,scraping)
+                main_text  += generate_by_pledge_text
+                blog.wp_update_post(update_content_id, main_text )
                 blog.post_line(f'既存記事を更新しました。\n{prefecture_name}_{blog.target_date_string_jp}')
             else:
-                print('新しい記事を作成')
+                print('新しい記事を作成します')
                 print(title)
                 blog.generate_thumbnail()
                 main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
+                generate_by_pledge_text = blog.generate_by_pledge_text(merged_syuzai_pledge_df,scraping)
+                main_text  += generate_by_pledge_text
                 blog.post_blog(main_text)
                 blog.post_line(f'新しい記事を作成しました。\n{prefecture_name}_{blog.target_date_string_jp}')
             #break
         #break
-
-    try:
-        target_dir = r'image\temp_image'
-        shutil.rmtree(target_dir)
-    except:
-        pass
-    finally:
-        os.mkdir(target_dir)
-        blog.post_line(f'全ての処理が正常に終わりました。')
-
+        
 except Exception as e :
     blog.post_line(f'\n{e}')
 
@@ -506,4 +572,6 @@ finally:
         pass
     finally:
         os.mkdir(target_dir)
+        error_pledge_name_list = list(set(blog.error_pledge_name_list))
+        blog.post_line(f'\nエラー媒体名一覧\n{error_pledge_name_list}')
         blog.post_line(f'全ての処理が終わりました。')
