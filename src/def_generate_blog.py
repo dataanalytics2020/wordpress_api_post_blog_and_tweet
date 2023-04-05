@@ -313,7 +313,6 @@ class Blog():
 
 
 class PledgeScraping():
-
     def add_target_date(self, target_day_number:int):
         week_list = [ '(日)','(月)', '(火)', '(水)', '(木)', '(金)', '(土)','(日)']
         target_date:datetime = datetime.date.today() + datetime.timedelta(days=target_day_number)
