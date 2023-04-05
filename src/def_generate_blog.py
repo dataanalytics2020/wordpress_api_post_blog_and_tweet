@@ -435,6 +435,7 @@ class PledgeScraping():
     def generate_merged_syuzai_pledge_df(self):
         merged_syuzai_pledge_df = pd.merge(self.furture_syuzai_list_df,self.convert_parlar_name_df,how='left',on='取材名')
         merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['取材名'].str.contains('ナビ子')]
+        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['媒体名'].str.contains('ホールナビ')]
         merged_syuzai_pledge_df = merged_syuzai_pledge_df.fillna('未調査')
         merged_syuzai_pledge_df = merged_syuzai_pledge_df.replace({'': '未調査'})
         self.merged_syuzai_pledge_df = merged_syuzai_pledge_df
