@@ -61,8 +61,7 @@ def delete_data(cnx,day):
     cursor.execute(sql)
     cnx.commit()
 
-prefecture_list = ['静岡県','岐阜県','愛知県','三重県']#,'東京都'
-
+prefecture_list = ['静岡県','岐阜県','愛知県','三重県']#,'東京都''静岡県','岐阜県','愛知県','三重県'
 line_token = os.getenv('LINE_TOKEN')
 #print(line_token)
 for prefecture in prefecture_list:
@@ -70,22 +69,25 @@ for prefecture in prefecture_list:
         post_line_text(f'{prefecture}MYSQL追加処理を開始します',line_token)
         cols = ['機種名', '台番号', 'G数', '差枚', 'BB', 'RB', 'ART', 'BB確率', 'RB確率', 'ART確率','合成確率','店舗名']
         ichiran_all_tennpo_df = pd.DataFrame(index=[], columns=cols)
-        yesterday = datetime.date.today() + datetime.timedelta(days=-1)
+        yesterday = datetime.date.today() + datetime.timedelta(days=-2)
         url = f'https://{os.getenv("SCRAPING_DOMAIN")}/%E3%83%9B%E3%83%BC%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF/{prefecture}/'
         res = requests.get(url)
         soup = BeautifulSoup(res.text, 'html.parser')
         table = soup.find_all('table')
         tenpo_ichiran_df =pd.read_html(str(table))[-1]
         print(tenpo_ichiran_df)
-        i = 0
-        for tenpo_name in tenpo_ichiran_df['ホール名'] :#tenpo_ichiran_df['ホール名']
+        all_parlar_count_number = str(len(tenpo_ichiran_df))
+        post_line_text(f'{prefecture}は{all_parlar_count_number}の店舗が掲載されいます',line_token)
+        count = 0
+        error_count = 0
+        for i, tenpo_name in enumerate(tenpo_ichiran_df['ホール名'] ):#tenpo_ichiran_df['ホール名']
             try:
                 #time.sleep(1)
-                print(tenpo_name)
+                print(i,tenpo_name)
                 url = f'https://{os.getenv("SCRAPING_DOMAIN")}/{yesterday.strftime("%Y-%m-%d")}-{tenpo_name}'
                 res = requests.get(url)
                 soup = BeautifulSoup(res.text, 'html.parser')
-                table = soup.find('table')
+                table = soup.find(id = "all_data_table")
                 dfs =pd.read_html(str(table))
                 #display(tenpo_df)
                 #time.sleep(1)
@@ -100,10 +102,14 @@ for prefecture in prefecture_list:
                             ichiran_df['都道府県'] = prefecture 
                             ichiran_df['機種名'] = ichiran_df['機種名'].map(removal_text)
                             ichiran_all_tennpo_df =  pd.concat([ichiran_all_tennpo_df, ichiran_df])
+                            print('成功',i,tenpo_name)
                             break
-                        i += 1
+                        else:
+                            print('見つかりませんでした',i,tenpo_name)
+                        count += 1
                     except Exception as e:
                         print(tenpo_name,e)
+                        error_count += 1
                         #time.sleep(1)
                         continue
             except Exception as e:
@@ -149,7 +155,7 @@ for prefecture in prefecture_list:
             cursor = cnx.cursor()
             insert_data_bulk(ichiran_all_tennpo_df,cnx)
             tenpo_name_number = len(ichiran_all_tennpo_df['店舗名'].unique())
-            post_line_text(f'{prefecture} {tenpo_name_number}件のSQL追加処理に成功しました',line_token)
+            post_line_text(f'{prefecture} {tenpo_name_number}/{all_parlar_count_number}件のSQL追加処理に成功しました',line_token)
             delete_data(cnx,35)
             # 終了
             cnx.close()
