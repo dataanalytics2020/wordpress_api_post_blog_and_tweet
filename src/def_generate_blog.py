@@ -120,7 +120,7 @@ class Blog():
     def get_post_list(self) -> list[any]:
         '''投稿一覧を取得する関数
         一回で100記事まで取得できる'''
-        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 50, "offset":0}))
+        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 100, "offset":0}))
         self.post_list = post_list
         return self.post_list
 
@@ -433,10 +433,10 @@ class PledgeScraping():
     
     def generate_merged_syuzai_pledge_df(self):
         merged_syuzai_pledge_df = pd.merge(self.furture_syuzai_list_df,self.convert_parlar_name_df,how='left',on='取材名')
-        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['取材名'].str.contains('ナビ子')]
-        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['媒体名'].str.contains('ホールナビ')]
         merged_syuzai_pledge_df = merged_syuzai_pledge_df.fillna('未調査')
         merged_syuzai_pledge_df = merged_syuzai_pledge_df.replace({'': '未調査'})
+        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['取材名'].str.contains('ナビ子')]
+        merged_syuzai_pledge_df = merged_syuzai_pledge_df[~merged_syuzai_pledge_df['媒体名'].str.contains('ホールナビ')]
         self.merged_syuzai_pledge_df = merged_syuzai_pledge_df
         return self.merged_syuzai_pledge_df
     
@@ -533,7 +533,7 @@ try:
             read_convert_parlar_name_df = scraping.read_convert_parlar_name_df()
             merged_syuzai_pledge_df = scraping.generate_merged_syuzai_pledge_df()
             save_main_image_path_list = scraping.create_pledge_main_images()
-            title = f"【{blog.prefecture_name}】{blog.target_date_string_jp } パチンコスロットイベント取材まとめ"
+            title = f"【{blog.prefecture_name}】{blog.target_date_string_jp} パチンコスロットイベント取材まとめ"
             if title in post_title_contentid_dict:
                 update_content_id:int = int(post_title_contentid_dict[title])
                 print('既存の記事を更新します',update_content_id)
