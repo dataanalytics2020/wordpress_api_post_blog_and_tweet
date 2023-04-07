@@ -310,8 +310,6 @@ class Blog():
         self.input_by_pledge_text = input_by_pledge_text
         return self.input_by_pledge_text
 
-
-
 class PledgeScraping():
     def add_target_date(self, target_day_number:int):
         week_list = [ '(日)','(月)', '(火)', '(水)', '(木)', '(金)', '(土)','(日)']

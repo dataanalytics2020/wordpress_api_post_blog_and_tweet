@@ -278,7 +278,7 @@ class UtilsTwitterClass():
         return zendai_ichiran_df
 
 
-    def post_line(message):
+    def post_line(message:str) -> None:
         url = "https://notify-api.line.me/api/notify"
         token = os.environ['LINE_TOKEN']
         headers = {"Authorization" : "Bearer "+ token}
@@ -364,7 +364,7 @@ class Blog():
     def get_post_list(self) -> list[WordPressPost]:
         '''投稿一覧を取得する関数
         一回で100記事まで取得できる'''
-        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 50, "offset":0}))
+        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 500, "offset":0}))
         self.post_list = post_list
         return self.post_list
 
