@@ -144,10 +144,11 @@ class UtilsTwitterClass():
 
         element = browser.find_element(By.XPATH, '//*[@data-testid="fileInput"]')
         time.sleep(1)
-
-
+        pwd = os.getcwd()
+        print('pwd',os.getcwd())
         for image_path in self.image_path_list:
-            element.send_keys(image_path)
+            abusolute_image_path = os.path.join(pwd,image_path)
+            element.send_keys(abusolute_image_path)
             time.sleep(1) 
 
         #browser.execute_script("arguments[0].click();", element)
@@ -571,8 +572,8 @@ class PledgeScraping():
     def login_scraping_site(self,area_name):
         global browser
         options = Options()
-        options.add_argument('--headless')
-        options.add_argument("--no-sandbox")
+        #options.add_argument('--headless')
+        #options.add_argument("--no-sandbox")
         browser = webdriver.Chrome(ChromeDriverManager().install(),options=options)#ChromeDriverManager().install()
         browser.implicitly_wait(10)
         url_login = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/login_form_mail"
@@ -627,35 +628,44 @@ class PledgeScraping():
         self.prefecture_name = prefecture_name
         furture_syuzai_list_df = pd.DataFrame(index=[], columns=['都道府県','イベント日','店舗名','取材名','取材ランク'])
         prefecture_number:int = int(self.prefecture_name_and_number_dict[prefecture_name])
-        url = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/osusume_list?ken={self.prefecture_name}&ymd={self.target_date_string_sql}"
+        url = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/osusume_list?ken={prefecture_number}&ymd={self.target_date_string_sql}"
         browser.get(url)
-        browser.implicitly_wait(10)
-        kiji_element_box = browser.find_element(By.CLASS_NAME,"osusume_list_container")
-        kiji_elements_list:list = kiji_element_box.find_elements(By.CLASS_NAME,"osbox")
+        page_number = 0
+        while True:
+            page_number += 1
+            browser.implicitly_wait(10)
+            kiji_element_box = browser.find_element(By.CLASS_NAME,"osusume_list_container")
+            kiji_elements_list:list = kiji_element_box.find_elements(By.CLASS_NAME,"osbox")
 
-        for i,syuzai_record_element in enumerate(kiji_elements_list):
-            if 'プレミアム会員登録' == browser.find_element(By.CLASS_NAME,"menu_child").text:
-                browser = self.login_scraping_site('chubu')
-                url = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/osusume_list?ken={self.target_date_string_sql}&ymd={self.target_date_string_sql}"
-                browser.get(url)
-                browser.implicitly_wait(10)
+            for i,syuzai_record_element in enumerate(kiji_elements_list):
+                if 'プレミアム会員登録' == browser.find_element(By.CLASS_NAME,"menu_child").text:
+                    browser = self.login_scraping_site('chubu')
+                    url = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/osusume_list?ken={prefecture_number}&ymd={self.target_date_string_sql}"
+                    browser.get(url)
+                    browser.implicitly_wait(10)
+                else:
+                    pass
+                #print(syuzai_record_element.text)
+                syuzai_record_element_list = syuzai_record_element.find_elements(By.CLASS_NAME,"list_event_name")
+                browser.implicitly_wait(1)
+                #print(syuzai_record_element_list)
+                if len(syuzai_record_element_list) == 0:
+                    continue
+                tenpo_name = syuzai_record_element.find_element(By.CLASS_NAME,"oslh2").text
+                for syuzai_name_element in syuzai_record_element_list:
+                    #print(syuzai_name_element.text)
+                    syuzai_rank = syuzai_name_element.find_element(By.CLASS_NAME,"list_event_name_rank").text
+                    schedule_name = syuzai_name_element.find_element(By.CLASS_NAME,"list_event_name_li").text
+                    #print(tenpo_name,syuzai_rank,schedule_name)
+                    record = pd.Series([prefecture_name,self.target_date_string_sql, tenpo_name,schedule_name,syuzai_rank], index=furture_syuzai_list_df.columns)
+                    furture_syuzai_list_df = furture_syuzai_list_df.append(record, ignore_index=True)
+            if browser.find_element(By.CLASS_NAME,"navi_1_next").text == '次へ':
+                browser.find_element(By.CLASS_NAME,"navi_1_next").click()
             else:
-                pass
-            #print(syuzai_record_element.text)
-            syuzai_record_element_list = syuzai_record_element.find_elements(By.CLASS_NAME,"list_event_name")
-            browser.implicitly_wait(1)
-            #print(syuzai_record_element_list)
-            if len(syuzai_record_element_list) == 0:
-                continue
-            tenpo_name = syuzai_record_element.find_element(By.CLASS_NAME,"oslh2").text
-            for syuzai_name_element in syuzai_record_element_list:
-                #print(syuzai_name_element.text)
-                syuzai_rank = syuzai_name_element.find_element(By.CLASS_NAME,"list_event_name_rank").text
-                schedule_name = syuzai_name_element.find_element(By.CLASS_NAME,"list_event_name_li").text
-                #print(tenpo_name,syuzai_rank,schedule_name)
-                record = pd.Series([prefecture_name,self.target_date_string_sql, tenpo_name,schedule_name,syuzai_rank], index=furture_syuzai_list_df.columns)
-                furture_syuzai_list_df = furture_syuzai_list_df.append(record, ignore_index=True)
-
+                break
+            if page_number >= 3:
+                break
+            
         self.furture_syuzai_list_df = furture_syuzai_list_df
         return self.furture_syuzai_list_df
 

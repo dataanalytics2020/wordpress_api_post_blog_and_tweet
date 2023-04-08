@@ -381,7 +381,7 @@ class PledgeScraping():
         self.prefecture_name = prefecture_name
         furture_syuzai_list_df = pd.DataFrame(index=[], columns=['都道府県','イベント日','店舗名','取材名','取材ランク'])
         prefecture_number:int = int(self.prefecture_name_and_number_dict[prefecture_name])
-        url = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/osusume_list?ken={self.prefecture_name}&ymd={self.target_date_string_sql}"
+        url = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/osusume_list?ken={prefecture_number}&ymd={self.target_date_string_sql}"
         browser.get(url)
         browser.implicitly_wait(10)
         kiji_element_box = browser.find_element(By.CLASS_NAME,"osusume_list_container")
