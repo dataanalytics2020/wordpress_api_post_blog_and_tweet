@@ -572,8 +572,8 @@ class PledgeScraping():
     def login_scraping_site(self,area_name):
         global browser
         options = Options()
-        #options.add_argument('--headless')
-        #options.add_argument("--no-sandbox")
+        options.add_argument('--headless')
+        options.add_argument("--no-sandbox")
         browser = webdriver.Chrome(ChromeDriverManager().install(),options=options)#ChromeDriverManager().install()
         browser.implicitly_wait(10)
         url_login = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/login_form_mail"
