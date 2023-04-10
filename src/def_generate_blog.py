@@ -558,7 +558,7 @@ try:
                 blog.post_line(f'新しい記事を作成しました。\n{prefecture_name}_{blog.target_date_string_jp}')
             #break
         #break
-        
+
 except Exception as e :
     blog.post_line(f'\n{e}')
 
