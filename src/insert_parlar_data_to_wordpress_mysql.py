@@ -61,7 +61,8 @@ def delete_data(cnx,day):
     cursor.execute(sql)
     cnx.commit()
 
-prefecture_list = ['静岡県','岐阜県','愛知県','三重県']#,'東京都''静岡県','岐阜県','愛知県','三重県'
+prefecture_list = ['静岡県','岐阜県','愛知県','三重県','新潟県','富山県','石川県','福井県','山梨県','長野県']#,'東京都''静岡県','岐阜県','愛知県','三重県'
+
 line_token = os.getenv('LINE_TOKEN')
 #print(line_token)
 for prefecture in prefecture_list:

@@ -156,7 +156,7 @@ class UtilsDataClass(Blog):
             return {}
 
 target_day:int = 1
-for prefecture in ['岐阜県','静岡県','三重県','愛知県']:
+for prefecture in ['静岡県','岐阜県','愛知県','三重県','新潟県','富山県','石川県','福井県','山梨県','長野県']:
     twitter = UtilsTwitterClass()
     utilsdata = UtilsDataClass()
     utilsdata.add_target_date(-(target_day))
