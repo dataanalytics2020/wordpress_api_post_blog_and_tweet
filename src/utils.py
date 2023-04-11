@@ -367,7 +367,7 @@ class Blog():
     def get_post_list(self) -> list[WordPressPost]:
         '''投稿一覧を取得する関数
         一回で500記事まで取得できる'''
-        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 500, "offset":0}))
+        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 1000, "offset":0}))
         self.post_list = post_list
         return self.post_list
 
