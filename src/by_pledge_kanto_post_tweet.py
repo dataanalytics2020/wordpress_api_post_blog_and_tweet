@@ -53,7 +53,7 @@ def get_concat_v_multi_resize(im_list, resample=Image.BICUBIC):
 scraping = PledgeScraping()
 target_day_number = 1
 scraping.add_target_date(target_day_number)
-browser = scraping.login_scraping_site('chubu')
+browser = scraping.login_scraping_site('kanto')
 prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
 
 #pledge_imageフォルダの中身をリスト化
@@ -63,13 +63,11 @@ for pledge_image_path in glob.glob(r'image\pledge_image\*'):
     pledge_image_path_list.append(pledge_image)
     
 rank_color_dict:dict[str:tuple] = {'S':(255,0,0),'A':(0,128,0),'B':(255,255,0),'C':(0,0,255),'・':(255,255,255)}
-prefecture_wp_url_dict ={'愛知県':'http://bit.ly/3G54gt7',
-                         '静岡県':'http://bit.ly/3Kmxupy',
-                        '岐阜県':'http://bit.ly/3nAdhUF',
-                        '三重県':'http://bit.ly/3U04cAn'}
+prefecture_wp_url_dict ={'神奈川県':'http://bit.ly/3MByjN60',
+                         '千葉県':'http://bit.ly/3Gzq54c',
+                        '埼玉県':'http://bit.ly/414nHdR'}
 
-
-for prefecture_name in ['愛知県','三重県','静岡県','岐阜県',]:
+for prefecture_name in ['埼玉県','千葉県','神奈川県']:
     for target_dir in [r'image\temp_concat_image_dir',r'image\temp_tweet_image_dir',r'image\temp_image']:
         try:
             shutil.rmtree(target_dir)
@@ -248,8 +246,8 @@ for prefecture_name in ['愛知県','三重県','静岡県','岐阜県',]:
     print(tweet_text)
 
     twitter.tweet_text = tweet_text
-    twitter.id =os.getenv('TWITTER_ID')
-    twitter.pw =os.getenv('TWITTER_PW')
+    twitter.id =os.getenv('TWITTER_KANTO_ID')
+    twitter.pw =os.getenv('TWITTER_KANTO_PW')
     twitter.twitter_login()
     twitter.post_tweet()
     
