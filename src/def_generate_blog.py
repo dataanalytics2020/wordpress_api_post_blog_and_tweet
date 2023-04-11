@@ -120,7 +120,7 @@ class Blog():
     def get_post_list(self) -> list[any]:
         '''投稿一覧を取得する関数
         一回で100記事まで取得できる'''
-        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 100, "offset":0}))
+        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 1000, "offset":0}))
         self.post_list = post_list
         return self.post_list
 
@@ -376,7 +376,7 @@ class PledgeScraping():
         self.prefecture_name_and_number_dict = prefecture_name_and_number_dict
         return self.prefecture_name_and_number_dict
     
-    def read_target_date_pledge_df(self,prefecture_name:str):
+    def read_target_date_pledge_df(self,prefecture_name:str,area_name:str):
         browser = self.browser
         self.prefecture_name = prefecture_name
         furture_syuzai_list_df = pd.DataFrame(index=[], columns=['都道府県','イベント日','店舗名','取材名','取材ランク'])
@@ -389,7 +389,7 @@ class PledgeScraping():
 
         for i,syuzai_record_element in enumerate(kiji_elements_list):
             if 'プレミアム会員登録' == browser.find_element(By.CLASS_NAME,"menu_child").text:
-                browser = self.login_scraping_site('chubu')
+                browser = self.login_scraping_site(area_name)
                 url = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/osusume_list?ken={self.target_date_string_sql}&ymd={self.target_date_string_sql}"
                 browser.get(url)
                 browser.implicitly_wait(10)
@@ -509,53 +509,55 @@ class PledgeScraping():
         return self.save_main_image_path_list
 
 try:
-    blog = Blog()
-    post_list = blog.get_post_list()
-    post_title_contentid_dict:dict[str:int] = {}
-    for post in post_list:
-        post_title_contentid_dict[post.title] = int(post.id)
+    for area_name in ['tohoku','kanto','hokkaido','chubu']:
+        blog = Blog()
+        post_list = blog.get_post_list()
+        post_title_contentid_dict:dict[str:int] = {}
+        for post in post_list:
+            post_title_contentid_dict[post.title] = int(post.id)
 
-    scraping = PledgeScraping()
+        scraping = PledgeScraping()
 
-    for target_day_number in range(0,6):
-        scraping.add_target_date(target_day_number)
-        browser = scraping.login_scraping_site('chubu')
-        prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
-        for prefecture_name in prefecture_name_and_number_dict:
-            blog = Blog()
-            print(prefecture_name,target_day_number)
-            blog.add_target_date (target_day_number)
-            blog.prefecture_name = prefecture_name
-            print(prefecture_name)
-            scraping_target_date_pledge_df = scraping.read_target_date_pledge_df(prefecture_name)
-            read_convert_parlar_name_df = scraping.read_convert_parlar_name_df()
-            merged_syuzai_pledge_df = scraping.generate_merged_syuzai_pledge_df()
-            save_main_image_path_list = scraping.create_pledge_main_images()
-            title = f"【{blog.prefecture_name}】{blog.target_date_string_jp} パチンコスロットイベント取材まとめ"
-            if title in post_title_contentid_dict:
-                update_content_id:int = int(post_title_contentid_dict[title])
-                print('既存の記事を更新します',update_content_id)
-                files:list[Client] = blog.wp.call(methods.media.GetMediaLibrary({"parent_id": update_content_id}))
-                for file in files:
-                    print('画像削除',file.id, file.title)
-                    ret = blog.wp.call(methods.posts.DeletePost(file.id))
-                    print(ret)
-                    #break
+        for target_day_number in range(0,6):
+            scraping.add_target_date(target_day_number)
+            browser = scraping.login_scraping_site(area_name)
+            prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
+            for prefecture_name in prefecture_name_and_number_dict:
+                blog = Blog()
+                print(prefecture_name,target_day_number)
+                blog.add_target_date (target_day_number)
+                blog.prefecture_name = prefecture_name
+                print(prefecture_name)
+                scraping_target_date_pledge_df = scraping.read_target_date_pledge_df(prefecture_name,area_name)
+                read_convert_parlar_name_df = scraping.read_convert_parlar_name_df()
+                merged_syuzai_pledge_df = scraping.generate_merged_syuzai_pledge_df()
+                save_main_image_path_list = scraping.create_pledge_main_images()
+                title = f"【{blog.prefecture_name}】{blog.target_date_string_jp} パチンコスロットイベント取材まとめ"
+                if title in post_title_contentid_dict:
+                    update_content_id:int = int(post_title_contentid_dict[title])
+                    print('既存の記事を更新します',update_content_id)
+                    files:list[Client] = blog.wp.call(methods.media.GetMediaLibrary({"parent_id": update_content_id}))
+                    for file in files:
+                        print('画像削除',file.id, file.title)
+                        ret = blog.wp.call(methods.posts.DeletePost(file.id))
+                        print(ret)
+                        #break
 
-                main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
-                generate_by_pledge_text = blog.generate_by_pledge_text(merged_syuzai_pledge_df,scraping)
-                main_text  += generate_by_pledge_text
-                blog.wp_update_post(update_content_id, main_text )
-                blog.post_line(f'既存記事を更新しました。\n{prefecture_name}_{blog.target_date_string_jp}')
-            else:
-                print('新しい記事を作成します')
-                print(title)
-                blog.generate_thumbnail()
-                main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
-                generate_by_pledge_text = blog.generate_by_pledge_text(merged_syuzai_pledge_df,scraping)
-                main_text  += generate_by_pledge_text
-                blog.post_blog(main_text)
-                blog.post_line(f'新しい記事を作成しました。\n{prefecture_name}_{blog.target_date_string_jp}')
+                    main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
+                    generate_by_pledge_text = blog.generate_by_pledge_text(merged_syuzai_pledge_df,scraping)
+                    main_text  += generate_by_pledge_text
+                    blog.wp_update_post(update_content_id, main_text )
+                    blog.post_line(f'既存記事を更新しました。\n{prefecture_name}_{blog.target_date_string_jp}')
+                else:
+                    print('新しい記事を作成します')
+                    print(title)
+                    blog.generate_thumbnail()
+                    main_text:str = blog.create_main_text(save_main_image_path_list,merged_syuzai_pledge_df)
+                    generate_by_pledge_text = blog.generate_by_pledge_text(merged_syuzai_pledge_df,scraping)
+                    main_text  += generate_by_pledge_text
+                    blog.post_blog(main_text)
+                    blog.post_line(f'新しい記事を作成しました。\n{prefecture_name}_{blog.target_date_string_jp}')
+                #break
             #break
         #break
 
