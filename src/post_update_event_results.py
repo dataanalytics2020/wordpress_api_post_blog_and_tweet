@@ -158,129 +158,132 @@ class UtilsDataClass(Blog):
 target_day:int = 1
 for prefecture in ['静岡県','岐阜県','愛知県','三重県','新潟県','富山県','石川県','福井県','山梨県','長野県','神奈川県','東京都','千葉県','埼玉県','群馬県','栃木県','茨城県','福島県','山形県','秋田県','宮城県','岩手県','青森県','北海道']:
     
-    #try:
-    twitter = UtilsTwitterClass()
-    utilsdata = UtilsDataClass()
-    utilsdata.add_target_date(-(target_day))
-    utilsdata.prefecture_name =prefecture
+    try:
+        twitter = UtilsTwitterClass()
+        utilsdata = UtilsDataClass()
+        utilsdata.add_target_date(-(target_day))
+        utilsdata.prefecture_name =prefecture
 
-    with sshtunnel.SSHTunnelForwarder(
-        (os.getenv('SSH_USERNAME'), 10022), 
-        ssh_username="pachislot777", 
-        ssh_private_key_password=os.getenv('SSH_PRIVATE_KEY_PASSWORD'), 
-        ssh_pkey=r"sercret\akasaka.key", 
-        remote_bind_address=("mysql8055.xserver.jp", 3306 )
-        ) as server:
+        with sshtunnel.SSHTunnelForwarder(
+            (os.getenv('SSH_USERNAME'), 10022), 
+            ssh_username="pachislot777", 
+            ssh_private_key_password=os.getenv('SSH_PRIVATE_KEY_PASSWORD'), 
+            ssh_pkey=r"sercret\akasaka.key", 
+            remote_bind_address=("mysql8055.xserver.jp", 3306 )
+            ) as server:
 
-        # SSH接続確認
-        print(f"local bind port: {server.local_bind_port}")
-        # データベース接続
-        cnx = mysql.connector.connect(
-            host="localhost", 
-            port=server.local_bind_port, 
-            user=os.getenv('WORDPRESS_DB_ID'), 
-            password=os.getenv('DB_PASSWORD'), 
-            database=os.getenv('WORDPRESS_DB_NAME'), 
-            charset="utf8",
-            use_pure=True
-            )
+            # SSH接続確認
+            print(f"local bind port: {server.local_bind_port}")
+            # データベース接続
+            cnx = mysql.connector.connect(
+                host="localhost", 
+                port=server.local_bind_port, 
+                user=os.getenv('WORDPRESS_DB_ID'), 
+                password=os.getenv('DB_PASSWORD'), 
+                database=os.getenv('WORDPRESS_DB_NAME'), 
+                charset="utf8",
+                use_pure=True
+                )
 
-        # 接続確認
-        print(f"sql connection status: {cnx.is_connected()}")
-        cursor = cnx.cursor()
-        past_target_date_prefecture_parlar_data_df = query_prefecture_parlar_data(cnx,prefecture, target_day)
-        # 終了
-        #display(past_target_date_prefecture_parlar_data_df)
-        cnx.close()
+            # 接続確認
+            print(f"sql connection status: {cnx.is_connected()}")
+            cursor = cnx.cursor()
+            past_target_date_prefecture_parlar_data_df = query_prefecture_parlar_data(cnx,prefecture, target_day)
+            # 終了
+            #display(past_target_date_prefecture_parlar_data_df)
+            cnx.close()
 
-    event_results_text:str =f'<br><h5><span class="hatenamark2 on-color">{utilsdata.target_date_string_jp} {prefecture}のTOP20の結果を掲載しています。タップで上位機種など詳細が見れます。</h5>'
-    extract_prefecture_tenpo_data_df = past_target_date_prefecture_parlar_data_df
-    tenpobetsu_all_tenpo_df =  extract_prefecture_tenpo_data_df.groupby('店舗名').sum()
-    tenpobetsu_all_tenpo_df['総台数'] =  extract_prefecture_tenpo_data_df.groupby('店舗名').size()
-    tenpobetsu_all_tenpo_df['平均G数'] = tenpobetsu_all_tenpo_df['G数'] / tenpobetsu_all_tenpo_df['総台数']
-    tenpobetsu_all_tenpo_df['平均G数'] = tenpobetsu_all_tenpo_df['平均G数'].astype(int)
-    tenpobetsu_all_tenpo_df['平均差枚'] = tenpobetsu_all_tenpo_df['差枚'] / tenpobetsu_all_tenpo_df['総台数']
-    tenpobetsu_all_tenpo_df['平均差枚'] = tenpobetsu_all_tenpo_df['平均差枚'].astype(int)
-    tenpobetsu_all_tenpo_df = tenpobetsu_all_tenpo_df.sort_values('平均差枚',ascending=False)
-    tenpobetsu_all_tenpo_df = tenpobetsu_all_tenpo_df.reset_index()
-    tenpobetsu_all_tenpo_df['店舗出率'] =(((tenpobetsu_all_tenpo_df['G数'] * 3) + tenpobetsu_all_tenpo_df['差枚']) / (tenpobetsu_all_tenpo_df['G数'] * 3) )*100
-    tenpobetsu_all_tenpo_df['店舗出率'] = tenpobetsu_all_tenpo_df['店舗出率'].map(lambda x : round(x,1))
+        event_results_text:str =f'<br><h5><span class="hatenamark2 on-color">{utilsdata.target_date_string_jp} {prefecture}のTOP20の結果を掲載しています。タップで上位機種など詳細が見れます。</h5>'
+        extract_prefecture_tenpo_data_df = past_target_date_prefecture_parlar_data_df
+        tenpobetsu_all_tenpo_df =  extract_prefecture_tenpo_data_df.groupby('店舗名').sum()
+        tenpobetsu_all_tenpo_df['総台数'] =  extract_prefecture_tenpo_data_df.groupby('店舗名').size()
+        tenpobetsu_all_tenpo_df['平均G数'] = tenpobetsu_all_tenpo_df['G数'] / tenpobetsu_all_tenpo_df['総台数']
+        tenpobetsu_all_tenpo_df['平均G数'] = tenpobetsu_all_tenpo_df['平均G数'].astype(int)
+        tenpobetsu_all_tenpo_df['平均差枚'] = tenpobetsu_all_tenpo_df['差枚'] / tenpobetsu_all_tenpo_df['総台数']
+        tenpobetsu_all_tenpo_df['平均差枚'] = tenpobetsu_all_tenpo_df['平均差枚'].astype(int)
+        tenpobetsu_all_tenpo_df = tenpobetsu_all_tenpo_df.sort_values('平均差枚',ascending=False)
+        tenpobetsu_all_tenpo_df = tenpobetsu_all_tenpo_df.reset_index()
+        tenpobetsu_all_tenpo_df['店舗出率'] =(((tenpobetsu_all_tenpo_df['G数'] * 3) + tenpobetsu_all_tenpo_df['差枚']) / (tenpobetsu_all_tenpo_df['G数'] * 3) )*100
+        tenpobetsu_all_tenpo_df['店舗出率'] = tenpobetsu_all_tenpo_df['店舗出率'].map(lambda x : round(x,1))
 
-    for i,(index , record) in enumerate(tenpobetsu_all_tenpo_df.iterrows()):
-        #print(record['店舗名'])
-        tenpo_zendai_df = past_target_date_prefecture_parlar_data_df[past_target_date_prefecture_parlar_data_df['店舗名'] == record['店舗名']]
-        kisyubetsu_df = generate_processed_kisyubetu_df(tenpo_zendai_df)
-        if int(record['平均差枚']) > 0:
-            heikin_samai = '+' + str(record['平均差枚'])
-        else:
-            heikin_samai =  str(record['平均差枚'])#[su_spoiler title="4/6(木)愛知県 1位/159店舗　<br>◆プレイランドキャッスル大曽根 <br>5331G +63枚" style="fancy" icon="chevron-circle" anchor="Hello"]
-        tweet_text =f'''[su_spoiler title="{utilsdata.target_date_string_jp} {prefecture} {i+1}位/{len(tenpobetsu_all_tenpo_df.index.unique())}店舗
-{record['店舗名'].replace('店','')} 
-平均G数 {record['平均G数']}G　平均差枚 {heikin_samai}枚
-全体出率 {record['店舗出率']}%" style="fancy" icon="chevron-circle" anchor="Hello"]\n'''
-        kisyu_count = 0
-        gaiyou_df = pd.DataFrame({
-                '平均G数': f'{record["平均G数"]}G',
-                '店舗平均差枚': f'{heikin_samai}枚',
-                '店舗出率': f'{record["店舗出率"]}%',
-                '全体勝率': f'{len(tenpo_zendai_df[tenpo_zendai_df["差枚"] > 0])}/{str(record["総台数"])}',
-                '1000枚↑': f'{str(len(tenpo_zendai_df[tenpo_zendai_df.差枚 > 1000]))}/{record["総台数"]}({round(len(tenpo_zendai_df[tenpo_zendai_df.差枚 > 1000])/record["総台数"]*100,1)}%)',
-                '3000枚↑': f'{str(len(tenpo_zendai_df[tenpo_zendai_df.差枚 > 3000]))}/{record["総台数"]}({round(len(tenpo_zendai_df[tenpo_zendai_df.差枚 > 3000])/record["総台数"]*100,1)}%)'},index=[0]).T
-        gaiyou_df.columns = [f'概要']
-        #display(gaiyou_df)
-        #print(gaiyou_df.to_html(header=None))
-        tweet_text += gaiyou_df.to_html(header=None) + '\n'
-        # for _,kisyu_betsu_record in kisyubetsu_df.iterrows():
-        #     tweet_text += f"\n {kisyu_count+1}位 ▼{kisyu_betsu_record['機種名']}{kisyu_betsu_record['勝率']}\n    ・平均差枚 +{kisyu_betsu_record['平均差枚']}枚 平均G数 {kisyu_betsu_record['平均G数']}G"
-        #     kisyu_count += 1
-        #     if kisyu_count >= 5:
-        #         break
-        tweet_text += kisyubetsu_df[['機種名','平均G数','平均差枚','勝率']][:10].to_html(index=False)
-        tweet_text += '\n[/su_spoiler]'
-        #post_line_text(tweet_text,line_area_token[prefecture])
-        if i >= 20:
-            break
+        for i,(index , record) in enumerate(tenpobetsu_all_tenpo_df.iterrows()):
+            #print(record['店舗名'])
+            tenpo_zendai_df = past_target_date_prefecture_parlar_data_df[past_target_date_prefecture_parlar_data_df['店舗名'] == record['店舗名']]
+            kisyubetsu_df = generate_processed_kisyubetu_df(tenpo_zendai_df)
+            if int(record['平均差枚']) > 0:
+                heikin_samai = '+' + str(record['平均差枚'])
+            else:
+                heikin_samai =  str(record['平均差枚'])#[su_spoiler title="4/6(木)愛知県 1位/159店舗　<br>◆プレイランドキャッスル大曽根 <br>5331G +63枚" style="fancy" icon="chevron-circle" anchor="Hello"]
+            tweet_text =f'''[su_spoiler title="{utilsdata.target_date_string_jp} {prefecture} {i+1}位/{len(tenpobetsu_all_tenpo_df.index.unique())}店舗
+    {record['店舗名'].replace('店','')} 
+    平均G数 {record['平均G数']}G　平均差枚 {heikin_samai}枚
+    全体出率 {record['店舗出率']}%" style="fancy" icon="chevron-circle" anchor="Hello"]\n'''
+            kisyu_count = 0
+            gaiyou_df = pd.DataFrame({
+                    '平均G数': f'{record["平均G数"]}G',
+                    '店舗平均差枚': f'{heikin_samai}枚',
+                    '店舗出率': f'{record["店舗出率"]}%',
+                    '全体勝率': f'{len(tenpo_zendai_df[tenpo_zendai_df["差枚"] > 0])}/{str(record["総台数"])}',
+                    '1000枚↑': f'{str(len(tenpo_zendai_df[tenpo_zendai_df.差枚 > 1000]))}/{record["総台数"]}({round(len(tenpo_zendai_df[tenpo_zendai_df.差枚 > 1000])/record["総台数"]*100,1)}%)',
+                    '3000枚↑': f'{str(len(tenpo_zendai_df[tenpo_zendai_df.差枚 > 3000]))}/{record["総台数"]}({round(len(tenpo_zendai_df[tenpo_zendai_df.差枚 > 3000])/record["総台数"]*100,1)}%)'},index=[0]).T
+            gaiyou_df.columns = [f'概要']
+            #display(gaiyou_df)
+            #print(gaiyou_df.to_html(header=None))
+            tweet_text += gaiyou_df.to_html(header=None) + '\n'
+            # for _,kisyu_betsu_record in kisyubetsu_df.iterrows():
+            #     tweet_text += f"\n {kisyu_count+1}位 ▼{kisyu_betsu_record['機種名']}{kisyu_betsu_record['勝率']}\n    ・平均差枚 +{kisyu_betsu_record['平均差枚']}枚 平均G数 {kisyu_betsu_record['平均G数']}G"
+            #     kisyu_count += 1
+            #     if kisyu_count >= 5:
+            #         break
+            tweet_text += kisyubetsu_df[['機種名','平均G数','平均差枚','勝率']][:10].to_html(index=False)
+            tweet_text += '\n[/su_spoiler]'
+            #post_line_text(tweet_text,line_area_token[prefecture])
+            if i >= 20:
+                break
 
-        event_results_text += tweet_text
-    print(event_results_text)
+            event_results_text += tweet_text
+        print(event_results_text)
+        #break
+
+        title = f"【{utilsdata.prefecture_name}】{utilsdata.target_date_string_jp } パチンコスロットイベント取材まとめ"
+        print(title)
+        after_title = '※店舗結果掲載済 ' + title
+
+        post_list = utilsdata.get_post_list()
+        post_title_contentid_dict:dict[str:int] = {}
+        for post in post_list:
+            post_title_contentid_dict[post.title] = int(post.id)
+
+        update_content_id:int = int(post_title_contentid_dict[title])
+        post = utilsdata.wp.call(methods.posts.GetPost(update_content_id))
+
+        header_text = post.content.split('<h3>更新時間')[0]
+        update_time_text:str = f'\n<h3>※店舗結果更新済み 更新時間:{datetime.datetime.now().strftime("%m月%d日%H時%m分")}</h3>'
+        footer_text = post.content.split('分</h3>')[-1]
+        new_content = header_text + update_time_text + event_results_text +footer_text
+        print(new_content)
+
+        title = f"【{utilsdata.prefecture_name}】{utilsdata.target_date_string_jp } パチンコスロットイベント取材まとめ"
+        print(title)
+        after_title = '※店舗結果掲載済 ' + title
+
+        update_content_id:int = int(post_title_contentid_dict[title])
+        print('既存の記事を更新します',update_content_id)
+
+        utilsdata.generate_thumbnail()
+        output_thumbnail_path = f'thumbnail_{utilsdata.target_date}_{utilsdata.prefecture_name}_results.jpg'
+        media_id = utilsdata.upload_image(utilsdata.thumbnail_image_path, output_thumbnail_path)
+        now:str= datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
+
+        utilsdata.wp_update_post(update_content_id,new_content,media_id,now,after_title)
+        utilsdata.post_line(f'{utilsdata.target_date_string_jp}{prefecture}の事後結果更新が完了しました')
     #break
-
-    title = f"【{utilsdata.prefecture_name}】{utilsdata.target_date_string_jp } パチンコスロットイベント取材まとめ"
-    print(title)
-    after_title = '※店舗結果掲載済 ' + title
-
-    post_list = utilsdata.get_post_list()
-    post_title_contentid_dict:dict[str:int] = {}
-    for post in post_list:
-        post_title_contentid_dict[post.title] = int(post.id)
-
-    update_content_id:int = int(post_title_contentid_dict[title])
-    post = utilsdata.wp.call(methods.posts.GetPost(update_content_id))
-
-    header_text = post.content.split('<h3>更新時間')[0]
-    update_time_text:str = f'\n<h3>※店舗結果更新済み 更新時間:{datetime.datetime.now().strftime("%m月%d日%H時%m分")}</h3>'
-    footer_text = post.content.split('分</h3>')[-1]
-    new_content = header_text + update_time_text + event_results_text +footer_text
-    print(new_content)
-
-    title = f"【{utilsdata.prefecture_name}】{utilsdata.target_date_string_jp } パチンコスロットイベント取材まとめ"
-    print(title)
-    after_title = '※店舗結果掲載済 ' + title
-
-    update_content_id:int = int(post_title_contentid_dict[title])
-    print('既存の記事を更新します',update_content_id)
-
-    utilsdata.generate_thumbnail()
-    output_thumbnail_path = f'thumbnail_{utilsdata.target_date}_{utilsdata.prefecture_name}_results.jpg'
-    media_id = utilsdata.upload_image(utilsdata.thumbnail_image_path, output_thumbnail_path)
-    now:str= datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-
-    utilsdata.wp_update_post(update_content_id,new_content,media_id,now,after_title)
-    utilsdata.post_line(f'{utilsdata.target_date_string_jp}{prefecture}の事後結果更新が完了しました')
-    #break
-    # except Exception as e:
-    #     utilsdata.post_line(f'エラー{utilsdata.target_date_string_jp}{prefecture}{e}')
-    #     continue
+    except Exception as e :
+        t, v, tb = sys.exc_info()
+        utilsdata.post_line(f'\n{traceback.format_tb(tb)}\n\n{e}')
+        utilsdata.post_line(f'エラー{utilsdata.target_date_string_jp}{prefecture}{e}')
+        #break    
+        continue
 try:
     target_dir = r'image\temp_image'
     shutil.rmtree(target_dir)

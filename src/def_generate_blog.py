@@ -563,7 +563,7 @@ try:
 
 except Exception as e :
     t, v, tb = sys.exc_info()
-    blog.post_line(f'\n{traceback.format_tb(tb)}')
+    blog.post_line(f'\n{traceback.format_tb(tb)}\n\n{e}')
 
 finally:
     try:
