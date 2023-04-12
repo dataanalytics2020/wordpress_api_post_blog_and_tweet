@@ -120,7 +120,7 @@ class Blog():
     def get_post_list(self) -> list[any]:
         '''投稿一覧を取得する関数
         一回で100記事まで取得できる'''
-        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 1000, "offset":0}))
+        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 800, "offset":0}))
         self.post_list = post_list
         return self.post_list
 
@@ -562,7 +562,8 @@ try:
         #break
 
 except Exception as e :
-    blog.post_line(f'\n{e}')
+    t, v, tb = sys.exc_info()
+    blog.post_line(f'\n{traceback.format_tb(tb)}')
 
 finally:
     try:

@@ -157,6 +157,8 @@ class UtilsDataClass(Blog):
 
 target_day:int = 1
 for prefecture in ['静岡県','岐阜県','愛知県','三重県','新潟県','富山県','石川県','福井県','山梨県','長野県','神奈川県','東京都','千葉県','埼玉県','群馬県','栃木県','茨城県','福島県','山形県','秋田県','宮城県','岩手県','青森県','北海道']:
+    
+    #try:
     twitter = UtilsTwitterClass()
     utilsdata = UtilsDataClass()
     utilsdata.add_target_date(-(target_day))
@@ -213,9 +215,9 @@ for prefecture in ['静岡県','岐阜県','愛知県','三重県','新潟県','
         else:
             heikin_samai =  str(record['平均差枚'])#[su_spoiler title="4/6(木)愛知県 1位/159店舗　<br>◆プレイランドキャッスル大曽根 <br>5331G +63枚" style="fancy" icon="chevron-circle" anchor="Hello"]
         tweet_text =f'''[su_spoiler title="{utilsdata.target_date_string_jp} {prefecture} {i+1}位/{len(tenpobetsu_all_tenpo_df.index.unique())}店舗
-    {record['店舗名'].replace('店','')} 
-    平均G数 {record['平均G数']}G　平均差枚 {heikin_samai}枚
-    全体出率 {record['店舗出率']}%" style="fancy" icon="chevron-circle" anchor="Hello"]\n'''
+{record['店舗名'].replace('店','')} 
+平均G数 {record['平均G数']}G　平均差枚 {heikin_samai}枚
+全体出率 {record['店舗出率']}%" style="fancy" icon="chevron-circle" anchor="Hello"]\n'''
         kisyu_count = 0
         gaiyou_df = pd.DataFrame({
                 '平均G数': f'{record["平均G数"]}G',
@@ -276,7 +278,9 @@ for prefecture in ['静岡県','岐阜県','愛知県','三重県','新潟県','
     utilsdata.wp_update_post(update_content_id,new_content,media_id,now,after_title)
     utilsdata.post_line(f'{utilsdata.target_date_string_jp}{prefecture}の事後結果更新が完了しました')
     #break
-
+    # except Exception as e:
+    #     utilsdata.post_line(f'エラー{utilsdata.target_date_string_jp}{prefecture}{e}')
+    #     continue
 try:
     target_dir = r'image\temp_image'
     shutil.rmtree(target_dir)
