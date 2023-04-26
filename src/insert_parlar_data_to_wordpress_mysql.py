@@ -61,7 +61,7 @@ def delete_data(cnx,day):
     cursor.execute(sql)
     cnx.commit()
 
-prefecture_list = ['静岡県','岐阜県','愛知県','三重県','新潟県','富山県','石川県','福井県','山梨県','長野県','神奈川県','東京都','千葉県','埼玉県','群馬県','栃木県','茨城県','福島県','山形県','秋田県','宮城県','岩手県','青森県','北海道']#,'東京都''静岡県','岐阜県','愛知県','三重県'
+prefecture_list = ['東京都','静岡県','岐阜県','愛知県','三重県','新潟県','富山県','石川県','福井県','山梨県','長野県','神奈川県','千葉県','埼玉県','群馬県','栃木県','茨城県','福島県','山形県','秋田県','宮城県','岩手県','青森県','北海道']#,'東京都''静岡県','岐阜県','愛知県','三重県'
 
 line_token = os.getenv('LINE_TOKEN')
 #print(line_token)
@@ -70,7 +70,7 @@ for prefecture in prefecture_list:
         post_line_text(f'{prefecture}MYSQL追加処理を開始します',line_token)
         cols = ['機種名', '台番号', 'G数', '差枚', 'BB', 'RB', 'ART', 'BB確率', 'RB確率', 'ART確率','合成確率','店舗名']
         ichiran_all_tennpo_df = pd.DataFrame(index=[], columns=cols)
-        yesterday = datetime.date.today() + datetime.timedelta(days=-1)
+        yesterday = datetime.date.today() + datetime.timedelta(days=-3)
         url = f'https://{os.getenv("SCRAPING_DOMAIN")}/%E3%83%9B%E3%83%BC%E3%83%AB%E3%83%87%E3%83%BC%E3%82%BF/{prefecture}/'
         res = requests.get(url)
         soup = BeautifulSoup(res.text, 'html.parser')
