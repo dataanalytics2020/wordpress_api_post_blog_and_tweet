@@ -1,3 +1,4 @@
+
 import pandas as pd
 import datetime
 import time
@@ -167,3 +168,7 @@ for prefecture in prefecture_list:
 
     finally:
         print('終了')
+        
+# except Exception as e :
+#     t, v, tb = sys.exc_info()
+#     blog.post_line(f'\n{traceback.format_tb(tb)}\n\n{e}')
