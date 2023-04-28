@@ -40,6 +40,46 @@ from wordpress_xmlrpc.methods import media, posts
 from wordpress_xmlrpc.compat import xmlrpc_client
 from wordpress_xmlrpc import Client, WordPressPost, methods
 
+import requests
+import json
+import base64
+from wordpress_xmlrpc.methods import media
+#from oauth2client.service_account import ServiceAccountCredentials
+import gspread
+from wordpress_xmlrpc.methods.posts import GetPosts, NewPost
+from wordpress_xmlrpc.methods.users import GetUserInfo
+from wordpress_xmlrpc.methods import media, posts
+from wordpress_xmlrpc.compat import xmlrpc_client
+from wordpress_xmlrpc import Client, WordPressPost
+from dateutil.relativedelta import relativedelta
+import os
+from selenium import webdriver
+import time
+import pandas as pd
+from selenium.webdriver.common.alert import Alert
+from selenium.webdriver.support.ui import Select
+import urllib
+from bs4 import BeautifulSoup
+import re
+import csv
+import codecs
+import requests
+import urllib.request as req
+import glob
+import json
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium.webdriver.chrome.options import Options
+from datetime import timedelta
+import datetime
+import os
+from selenium.webdriver.common.by import By
+from wordpress_xmlrpc import Client, WordPressPost, methods
+from urllib.parse import urljoin
+import mysql
+import mysql.connector
+import urllib.request
+
+
 from dotenv import load_dotenv
 load_dotenv(".env")
 print('読み込み完了')

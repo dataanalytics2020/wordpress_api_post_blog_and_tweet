@@ -1,62 +1,16 @@
 # -*- coding: utf-8 -*-
-import requests
-import json
-import base64
-from wordpress_xmlrpc.methods import media
-from oauth2client.service_account import ServiceAccountCredentials
-import gspread
-from wordpress_xmlrpc.methods.posts import GetPosts, NewPost
-from wordpress_xmlrpc.methods.users import GetUserInfo
-from wordpress_xmlrpc.methods import media, posts
-from wordpress_xmlrpc.compat import xmlrpc_client
-from wordpress_xmlrpc import Client, WordPressPost
-from PIL import Image, ImageDraw, ImageFont
-from dateutil.relativedelta import relativedelta
-import matplotlib.pyplot as plt
-import os
-from selenium import webdriver
-import time
-import pandas as pd
-from selenium.webdriver.common.alert import Alert
-from selenium.webdriver.support.ui import Select
-import urllib
-from bs4 import BeautifulSoup
-import re
-import csv
-import codecs
-import requests
-import urllib.request as req
-import glob
-import json
-from matplotlib.ticker import MaxNLocator
-import matplotlib.ticker as ticker
-from matplotlib import rcParams
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.options import Options
-from datetime import timedelta
-import datetime
-import os
 from dotenv import load_dotenv
-from selenium.webdriver.common.by import By
-from wordpress_xmlrpc import Client, WordPressPost, methods
-from urllib.parse import urljoin
-import mysql
-import mysql.connector
-import urllib.request
-
-
-print('ライブラリの読み込み完了')
 try:
     from src.utils import *
 except:
     from utils import *
+    
+    
 
 # .envファイルの内容を読み込見込む
 load_dotenv()
-
-
+print('ライブラリの読み込み完了')
 class Blog():
-
     def __init__(self):
         WORDPRESS_ID = os.environ['WORDPRESS_ID']
         WORDPRESS_PW = os.environ['WORDPRESS_PW']
@@ -507,7 +461,7 @@ class PledgeScraping():
                 parlar_name_count = 0
         self.save_main_image_path_list = save_main_image_path_list
         return self.save_main_image_path_list
-
+print('クラスの読み込み完了')
 try:
     for area_name in ['tohoku','kanto','hokkaido','chubu']:
         blog = Blog()
@@ -563,7 +517,8 @@ try:
 
 except Exception as e :
     t, v, tb = sys.exc_info()
-    blog.post_line(f'\n{traceback.format_tb(tb)}\n\n{e}')
+    print(f'\n{traceback.format_tb(tb)}\n\n{e}')
+    #blog.post_line(f'\n{traceback.format_tb(tb)}\n\n{e}')
 
 finally:
     try:
@@ -573,6 +528,6 @@ finally:
         pass
     finally:
         os.mkdir(target_dir)
-        error_pledge_name_list = list(set(blog.error_pledge_name_list))
-        blog.post_line(f'\nエラー媒体名一覧\n{error_pledge_name_list}')
-        blog.post_line(f'全ての処理が終わりました。')
+        #error_pledge_name_list = list(set(blog.error_pledge_name_list))
+        #blog.post_line(f'\nエラー媒体名一覧\n{error_pledge_name_list}')
+        #blog.post_line(f'全ての処理が終わりました。')
