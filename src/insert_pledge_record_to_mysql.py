@@ -123,7 +123,8 @@ for area_name in ['kanto','chubu','hokkaido','tohoku']:
                         prefectures = syuzai_tenpo_data.find_elements(By.CLASS_NAME,"oslha")[0].text
                         #print(baitai_name,syuzai_date ,syuzai_rank,syuzai_name,prefectures)#prefectures
                         record = pd.Series([prefectures,syuzai_date, tenpo_name,syuzai_name,baitai_name,syuzai_rank], index=furture_syuzai_list_df.columns)
-                        furture_syuzai_list_df = furture_syuzai_list_df.append(record, ignore_index=True)
+                        record_df =  pd.DataFrame(record)
+                        furture_syuzai_list_df = pd.concat([furture_syuzai_list_df,record_df.T])
                         #print(record)
                         #break
                         browser.implicitly_wait(10)

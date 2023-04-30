@@ -362,7 +362,8 @@ class PledgeScraping():
                 schedule_name = syuzai_name_element.find_element(By.CLASS_NAME,"list_event_name_li").text
                 #print(tenpo_name,syuzai_rank,schedule_name)
                 record = pd.Series([prefecture_name,self.target_date_string_sql, tenpo_name,schedule_name,syuzai_rank], index=furture_syuzai_list_df.columns)
-                furture_syuzai_list_df = furture_syuzai_list_df.append(record, ignore_index=True)
+                record_df =  pd.DataFrame(record)
+                furture_syuzai_list_df = pd.concat([furture_syuzai_list_df,record_df.T])
 
         self.furture_syuzai_list_df = furture_syuzai_list_df
         return self.furture_syuzai_list_df

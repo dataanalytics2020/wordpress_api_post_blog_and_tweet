@@ -20,3 +20,4 @@ mysql
 Pillow 
 pymysql
 python-wordpress-xmlrpc
+oauth2client
