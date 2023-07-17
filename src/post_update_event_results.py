@@ -195,6 +195,7 @@ for prefecture in ['静岡県','岐阜県','愛知県','三重県','新潟県','
 
         event_results_text:str =f'<br><h5><span class="hatenamark2 on-color">{utilsdata.target_date_string_jp} {prefecture}のTOP20の結果を掲載しています。タップで上位機種など詳細が見れます。</h5>'
         extract_prefecture_tenpo_data_df = past_target_date_prefecture_parlar_data_df
+        extract_prefecture_tenpo_data_df.drop(['日付'],axis=1,inplace=True)
         tenpobetsu_all_tenpo_df =  extract_prefecture_tenpo_data_df.groupby('店舗名').sum()
         tenpobetsu_all_tenpo_df['総台数'] =  extract_prefecture_tenpo_data_df.groupby('店舗名').size()
         tenpobetsu_all_tenpo_df['平均G数'] = tenpobetsu_all_tenpo_df['G数'] / tenpobetsu_all_tenpo_df['総台数']
