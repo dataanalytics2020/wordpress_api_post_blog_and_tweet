@@ -51,7 +51,8 @@ def login_scraping_site(area_name):
     #options.add_argument('--headless')
     options.add_argument("--no-sandbox")
 
-    browser = webdriver.Chrome(ChromeDriverManager().install(),options=options)#ChromeDriverManager().install() 
+    res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
+    browser = webdriver.Chrome(ChromeDriverManager(res.text).install(),options=options) #ChromeDriverManager().install() 
     browser.implicitly_wait(10)
     url_login = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/login_form_mail"
     #admageを開く
@@ -224,6 +225,7 @@ for area_name in ['kanto','chubu','hokkaido','tohoku']:
             else:
                 #print('追加なし')
                 pass
+        break
 
         post_line_text(f'{area_name} {count}件の公約レコードの追加が終了しました。',os.getenv('LINE_TOKEN'))
     except Exception as e:

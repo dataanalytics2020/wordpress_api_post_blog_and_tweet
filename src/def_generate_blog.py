@@ -281,7 +281,8 @@ class PledgeScraping():
         options = Options()
         options.add_argument('--headless')
         options.add_argument("--no-sandbox")
-        browser = webdriver.Chrome(ChromeDriverManager().install(),options=options)#ChromeDriverManager().install()
+        res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
+        browser = webdriver.Chrome(ChromeDriverManager(res.text).install(),options=options) # Chrome起動
         browser.implicitly_wait(10)
         url_login = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/login_form_mail"
         #admageを開く

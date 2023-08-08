@@ -225,7 +225,8 @@ try:
         options.add_argument('--headless')
         options.add_argument("--no-sandbox") 
         #options.add_argument('--user-agent=' + 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36')
-        browser = webdriver.Chrome(ChromeDriverManager().install(),options=options)
+        res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
+        browser = webdriver.Chrome(ChromeDriverManager(res.text).install(),options=options) 
         
         url_login = "https://hall-navi.com/login_form_mail"
         browser.implicitly_wait(10)
