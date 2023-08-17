@@ -63,7 +63,7 @@ for pledge_image_path in glob.glob(r'image\pledge_image\*'):
     pledge_image_path_list.append(pledge_image)
     
 rank_color_dict:dict[str:tuple] = {'S':(255,0,0),'A':(0,128,0),'B':(255,255,0),'C':(0,0,255),'・':(255,255,255)}
-prefecture_wp_url_dict ={'神奈川県':'http://bit.ly/3MByjN60',
+prefecture_wp_url_dict ={'神奈川県':'http://bit.ly/3qy9gld',
                          '千葉県':'http://bit.ly/3Gzq54c',
                         '埼玉県':'http://bit.ly/414nHdR'}
 
