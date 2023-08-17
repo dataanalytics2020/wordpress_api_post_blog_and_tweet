@@ -476,9 +476,9 @@ try:
 
         for target_day_number in range(0,6):
             scraping.add_target_date(target_day_number)
-            browser = scraping.login_scraping_site(area_name)
             prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
             for prefecture_name in prefecture_name_and_number_dict:
+                browser = scraping.login_scraping_site(area_name)
                 blog = Blog()
                 print(prefecture_name,target_day_number)
                 blog.add_target_date (target_day_number)
