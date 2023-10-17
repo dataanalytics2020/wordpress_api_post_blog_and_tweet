@@ -5,7 +5,12 @@ try:
 except:
     from utils import *
     
-    
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from chromedriver_py import binary_path # this will get you the path variable
+from selenium.webdriver.chrome.service import Service as ChromeService
+
+
 
 # .envファイルの内容を読み込見込む
 load_dotenv()
@@ -198,8 +203,19 @@ class Blog():
             output_path = output_path.split('.')[0] + f'_updatetime_' + datetime.datetime.now().strftime('%m-%d') +'.' +output_path.split('.')[1]
             print(output_path)
             self.upload_image(input_image_path, output_path)
-            main_text  += f'''\n<a href="{image_url_head_text}{output_path}">\n<img src="{image_url_head_text}{output_path}" alt="{self.prefecture_name}_{self.target_date_string_sql}_パチンコ・パチスロ_イベント" class="alignnone size-full " /></a>'''
-
+            main_text  += f'''\n<a href="{image_url_head_text}{output_path}">\n<img src="{image_url_head_text}{output_path}" alt="{self.prefecture_name}_{self.target_date_string_sql}_パチンコ・パチスロ_イベント" class="alignnone size-full " /></a>
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7061697582316562"
+     crossorigin="anonymous"></script>
+<!-- 中間広告A -->
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-7061697582316562"
+     data-ad-slot="8181342037"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>'''
+            main_text  +='''\n<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>'''
         html_table_df = merged_syuzai_pledge_df[['店舗名','取材名','媒体名','公約内容']]
         html_table_df['イベント日'] = self.target_date_string_jp
         html_table_df = html_table_df[['店舗名','取材名','媒体名','公約内容']]
@@ -242,6 +258,7 @@ class Blog():
             for rank in ['S','A','B','C','・']:
                 extract_syuzai_name_df  = extract_pledge_name_df[extract_pledge_name_df['取材ランク'] == rank]
                 #display(extract_syuzai_name_df)
+                ad_num = 0
                 for syuzai_name in extract_syuzai_name_df['取材名'].unique():
                     input_by_pledge_text += '<div class="redbox"><h5><span class="oomozi"><strong>' + syuzai_name + '</strong></span></h5>\n'
                     extract_parlar_name_df  = extract_pledge_name_df[extract_pledge_name_df['取材名'] == syuzai_name]
@@ -253,7 +270,20 @@ class Blog():
                         else:
                             input_by_pledge_text += f'\n{rank_replace_dict[rank]} {row["店舗名"]}</strong></span></h4>'
                         pre_pledge_name = row['取材名']
-                    input_by_pledge_text +='</div>'  
+                    input_by_pledge_text +='</div>'
+                    ad_num += 1
+                    if ad_num % 2 == 0:
+                        input_by_pledge_text += '''<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7061697582316562" crossorigin="anonymous"></script>
+<!-- 中間広告A -->
+<ins class="adsbygoogle"
+    style="display:block"
+    data-ad-client="ca-pub-7061697582316562"
+    data-ad-slot="8181342037"
+    data-ad-format="auto"
+    data-full-width-responsive="true"></ins>
+    <script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>'''
             # if len(extract_pledge_name_df ) != 0:
             #     # print('\n■',baitai,sep='')
             #     winput_by_pledge_text += '<h3>' + string_date_only + ' ' + todoufuken_kanji + ' スロット ' + baitai + '</h3>' + f'\n<img src="http://slotana777.com/wp-content/uploads/2021/04/{error_baitai}.jpg" alt="{error_baitai} タイトル画像" width="1000" height="400" class="alignnone size-full " />\n'
@@ -281,8 +311,10 @@ class PledgeScraping():
         options = Options()
         options.add_argument('--headless')
         options.add_argument("--no-sandbox")
-        res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
-        browser = webdriver.Chrome(ChromeDriverManager(res.text).install(),options=options) # Chrome起動
+        #res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
+        svc = webdriver.ChromeService(executable_path=binary_path)
+        browser = webdriver.Chrome(service=svc,options=options)
+
         browser.implicitly_wait(10)
         url_login = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/login_form_mail"
         #admageを開く
@@ -465,7 +497,7 @@ class PledgeScraping():
         return self.save_main_image_path_list
 print('クラスの読み込み完了')
 try:
-    for area_name in ['tohoku','kanto','hokkaido','chubu']:
+    for area_name in ['hokkaido','chubu','tohoku','kanto']:
         blog = Blog()
         post_list = blog.get_post_list()
         post_title_contentid_dict:dict[str:int] = {}
@@ -476,6 +508,7 @@ try:
 
         for target_day_number in range(0,6):
             scraping.add_target_date(target_day_number)
+            browser = scraping.login_scraping_site(area_name)
             prefecture_name_and_number_dict = scraping.get_prefecture_name_and_number_dict()
             for prefecture_name in prefecture_name_and_number_dict:
                 browser = scraping.login_scraping_site(area_name)
@@ -520,7 +553,7 @@ try:
 except Exception as e :
     t, v, tb = sys.exc_info()
     print(f'\n{traceback.format_tb(tb)}\n\n{e}')
-    #blog.post_line(f'\n{traceback.format_tb(tb)}\n\n{e}')
+    blog.post_line(f'\n{traceback.format_tb(tb)}\n\n{e}')
 
 finally:
     try:
