@@ -5,12 +5,16 @@ import os
 import pandas as pd
 from selenium.webdriver.common.alert import Alert
 from selenium.webdriver.support.ui import Select
+
+from selenium.webdriver.chrome.service import Service
 import urllib
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 #ServiceAccountCredentials：Googleの各サービスへアクセスできるservice変数を生成します。
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
+from selenium import webdriver
+from chromedriver_py import binary_path # this will get you the path variable
 import re
 import csv
 import codecs
@@ -135,9 +139,9 @@ class UtilsTwitterClass():
         # options.add_argument("--disable-features=NetworkService")
         # options.add_argument("--window-size=1920x1080")
         # options.add_argument("--disable-features=VizDisplayCompositor")
-        res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
-        browser = webdriver.Chrome(ChromeDriverManager(res.text).install(),options=options) 
-        browser.get("https://twitter.com/home")
+        #res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
+        svc = webdriver.ChromeService(executable_path=binary_path)
+        browser = webdriver.Chrome(service=svc)
         browser.implicitly_wait(10)
 
         browser.maximize_window()
@@ -617,8 +621,8 @@ class PledgeScraping():
         options = Options()
         options.add_argument('--headless')
         options.add_argument("--no-sandbox")
-        res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
-        browser = webdriver.Chrome(ChromeDriverManager(res.text).install(),options=options) 
+        #res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
+        browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
         browser.implicitly_wait(10)
         url_login = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/login_form_mail"
         #admageを開く

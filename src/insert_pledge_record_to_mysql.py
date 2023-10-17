@@ -7,7 +7,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 import requests
 import json
-
+from selenium import webdriver
+from chromedriver_py import binary_path # this will get you the path variable
 from webdriver_manager.chrome import ChromeDriverManager
 import mysql
 import mysql.connector
@@ -51,8 +52,8 @@ def login_scraping_site(area_name):
     #options.add_argument('--headless')
     options.add_argument("--no-sandbox")
 
-    res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
-    browser = webdriver.Chrome(ChromeDriverManager(res.text).install(),options=options) #ChromeDriverManager().install() 
+    svc = webdriver.ChromeService(executable_path=binary_path)
+    browser = webdriver.Chrome(service=svc,options=options)
     browser.implicitly_wait(10)
     url_login = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/login_form_mail"
     #admageを開く

@@ -167,8 +167,8 @@ for prefecture in ['静岡県','岐阜県','愛知県','三重県','新潟県','
         with sshtunnel.SSHTunnelForwarder(
             (os.getenv('SSH_USERNAME'), 10022), 
             ssh_username="pachislot777", 
-            ssh_private_key_password=os.getenv('SSH_PRIVATE_KEY_PASSWORD'), 
-            ssh_pkey=r"sercret\akasaka.key", 
+            ssh_private_key_password=os.getenv('SSH_PRIVATE_KEY_PASSWORD')+'2', 
+            ssh_pkey=r"sercret\akasaka2.key", 
             remote_bind_address=("mysql8055.xserver.jp", 3306 )
             ) as server:
 

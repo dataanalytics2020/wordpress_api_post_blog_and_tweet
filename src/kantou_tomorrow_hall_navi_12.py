@@ -33,7 +33,8 @@ import datetime
 import os
 from dotenv import load_dotenv
 from selenium.webdriver.common.by import By
-
+from selenium import webdriver
+from chromedriver_py import binary_path # this will get you the path variable
 print('ライブラリの読み込み完了')
 
 # .envファイルの内容を読み込見込む
@@ -225,8 +226,8 @@ try:
         options.add_argument('--headless')
         options.add_argument("--no-sandbox") 
         #options.add_argument('--user-agent=' + 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36')
-        res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
-        browser = webdriver.Chrome(ChromeDriverManager(res.text).install(),options=options) 
+        svc = webdriver.ChromeService(executable_path=binary_path)
+        browser = webdriver.Chrome(service=svc)
         
         url_login = "https://hall-navi.com/login_form_mail"
         browser.implicitly_wait(10)
@@ -237,12 +238,12 @@ try:
         element = browser.find_element(By.NAME, "id")
         element.click()
         browser.implicitly_wait(10)
-        element.send_keys('tsc953u@gmail.com')
+        element.send_keys('slotdata2020@gmail.com')
         # pw
         element = browser.find_element(By.NAME, "pass")
         element.click()
         browser.implicitly_wait(10)
-        element.send_keys('jdhibh')
+        element.send_keys('rik4lv')
         browser.implicitly_wait(10)
         element = browser.find_element(By.CLASS_NAME,"box_hole_view_report_input")
         element.click()
