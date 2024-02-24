@@ -9,7 +9,9 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from chromedriver_py import binary_path # this will get you the path variable
 from selenium.webdriver.chrome.service import Service as ChromeService
-
+#psycopg2のインポート
+import psycopg2
+import psycopg2.extras
 
 
 # .envファイルの内容を読み込見込む
@@ -79,7 +81,7 @@ class Blog():
     def get_post_list(self) -> list[any]:
         '''投稿一覧を取得する関数
         一回で100記事まで取得できる'''
-        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 800, "offset":0}))
+        post_list:list[WordPressPost] = self.wp.call(methods.posts.GetPosts({"number": 600, "offset":0}))
         self.post_list = post_list
         return self.post_list
 
@@ -312,8 +314,9 @@ class PledgeScraping():
         options.add_argument('--headless')
         options.add_argument("--no-sandbox")
         #res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
-        svc = webdriver.ChromeService(executable_path=binary_path)
-        browser = webdriver.Chrome(service=svc,options=options)
+        import chromedriver_binary
+        svc = webdriver.ChromeService(binary_path=chromedriver_binary.chromedriver_filename)
+        browser = webdriver.Chrome(options=options)#login_scraping_site
 
         browser.implicitly_wait(10)
         url_login = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/login_form_mail"
@@ -402,18 +405,30 @@ class PledgeScraping():
         return self.furture_syuzai_list_df
 
     def read_convert_parlar_name_df(self):
-        cnx = mysql.connector.connect(
-                        user = os.getenv('DB_USER_NAME'),
-                        password=os.getenv('DB_PASSWORD'), 
-                        host=os.getenv('DB_HOST'), 
-                        port='3306',
-                        database=os.getenv('DB_NAME'))
-        cursor = cnx.cursor()
-        sql = f"""SELECT * FROM pledge"""
+
+        users = os.getenv('HEROKU_PSGR_USER')    # DBにアクセスするユーザー名(適宜変更)
+        dbnames = os.getenv('HEROKU_PSGR_DATABASE')   # 接続するデータベース名(適宜変更)
+        passwords = os.getenv('HEROKU_PSGR_PASSWORD')  # DBにアクセスするユーザーのパスワード(適宜変更)
+        host = os.getenv('HEROKU_PSGR_HOST')     # DBが稼働しているホスト名(適宜変更)
+        port = 5432        # DBが稼働しているポート番号(適宜変更)
+        # PostgreSQLへ接続
+        conn = psycopg2.connect("user=" + users +" dbname=" + dbnames +" password=" + passwords, host=host, port=port)
+        conn.autocommit = True
+        conn.autocommit
+        # PostgreSQLにデータ登録
+        cursor = conn.cursor()
+
+        sql = f'''SELECT * 
+                    FROM pledge'''#AND (取材ランク = 'S' OR 取材ランク = 'A')
         print(sql)
         cursor.execute(sql)
+        result = cursor.fetchall()
+        cols = [col.name for col in cursor.description]
+        report_df = pd.DataFrame(result, columns=cols)
+        #report_df.to_csv('csv/test_location_df.csv',encoding='utf_8_sig',index=False)
         #cols = [col[0] for col in cursorsor.description]
-        convert_parlar_name_df = pd.DataFrame(cursor.fetchall(),columns = ['id','取材名','媒体名','公約内容','取得時間'])
+        convert_parlar_name_df = pd.DataFrame(cursor.fetchall(),columns = ['id','取材名','媒体名','公約内容','取得日','更新日','取材ランク'])
+        convert_parlar_name_df = convert_parlar_name_df[['id','取材名','媒体名','公約内容','取得日']]
         self.convert_parlar_name_df = convert_parlar_name_df
         return self.convert_parlar_name_df
     
@@ -553,7 +568,7 @@ try:
 except Exception as e :
     t, v, tb = sys.exc_info()
     print(f'\n{traceback.format_tb(tb)}\n\n{e}')
-    blog.post_line(f'\n{traceback.format_tb(tb)}\n\n{e}')
+    blog.post_line(f'{e}\n{traceback.format_tb(tb)}\n\n{e}')
 
 finally:
     try:
@@ -563,6 +578,7 @@ finally:
         pass
     finally:
         os.mkdir(target_dir)
+        browser.quit()
         #error_pledge_name_list = list(set(blog.error_pledge_name_list))
         #blog.post_line(f'\nエラー媒体名一覧\n{error_pledge_name_list}')
         #blog.post_line(f'全ての処理が終わりました。')

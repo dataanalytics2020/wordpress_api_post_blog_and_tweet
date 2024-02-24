@@ -132,16 +132,7 @@ class UtilsTwitterClass():
 
     def twitter_login(self):
         options = Options()
-        # options.add_argument("--headless")
-        # options.add_argument("--no-sandbox")
-        # options.add_argument("--disable-dev-shm-usage")
-        # options.add_argument("--disable-gpu")
-        # options.add_argument("--disable-features=NetworkService")
-        # options.add_argument("--window-size=1920x1080")
-        # options.add_argument("--disable-features=VizDisplayCompositor")
-        #res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
-        svc = webdriver.ChromeService(executable_path=binary_path)
-        browser = webdriver.Chrome(service=svc)
+        browser = webdriver.Chrome()
         browser.implicitly_wait(10)
 
         browser.maximize_window()
@@ -621,8 +612,9 @@ class PledgeScraping():
         options = Options()
         options.add_argument('--headless')
         options.add_argument("--no-sandbox")
+        import chromedriver_binary
         #res = requests.get('https://chromedriver.storage.googleapis.com/LATEST_RELEASE')
-        browser = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
+        browser = webdriver.Chrome()
         browser.implicitly_wait(10)
         url_login = f"https://{os.getenv('SCRAPING_SYUZAI_DOMAIN')}/login_form_mail"
         #admageを開く
