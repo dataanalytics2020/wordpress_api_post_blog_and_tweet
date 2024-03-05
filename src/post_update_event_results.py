@@ -278,6 +278,7 @@ for prefecture in ['静岡県','岐阜県','愛知県','三重県','新潟県','
 
         utilsdata.wp_update_post(update_content_id,new_content,media_id,now,after_title)
         utilsdata.post_line(f'{utilsdata.target_date_string_jp}{prefecture}の事後結果更新が完了しました')
+        time.sleep(30)
     #break
     except Exception as e :
         t, v, tb = sys.exc_info()
@@ -295,3 +296,4 @@ finally:
     error_pledge_name_list = list(set(utilsdata.error_pledge_name_list))
     utilsdata.post_line(f'\nエラー媒体名一覧\n{error_pledge_name_list}')
     utilsdata.post_line(f'全ての処理が終わりました。')
+    browser.quit()
